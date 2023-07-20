@@ -1,0 +1,17 @@
+@import url("./colors.css");
+
+.primary {
+  color: var(--aqua);
+}
+.secondary {
+  color: var(--blue);
+}
+.tertiary {
+  color: var(--purple);
+}
+.warning {
+  color: var(--yellow);
+}
+.error {
+  color: var(--red);
+}

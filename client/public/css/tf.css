@@ -1,0 +1,33 @@
+.tf {
+  position: relative;
+  z-index: 1;
+
+  transition: color 0.3s ease-out;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.tf:before {
+  background: rgb(162, 254, 254);
+  background: linear-gradient(
+    90deg,
+    rgba(162, 254, 254, 1) 0%,
+    rgba(249, 187, 250, 1) 25%,
+    rgba(250, 250, 250, 1) 50%,
+    rgba(249, 187, 250, 1) 75%,
+    rgba(162, 254, 254, 1) 100%
+  );
+
+  content: "";
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+.tf:hover:before {
+  opacity: 1;
+}
