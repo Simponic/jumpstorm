@@ -55,6 +55,7 @@ export class Game {
     const dt = timeStamp - this.lastTimeStamp;
     this.lastTimeStamp = timeStamp;
 
+    // rebuild the Component -> { Entity } map
     this.componentEntities.clear();
     this.entities.forEach((entity) =>
       entity.getComponents().forEach((component) => {

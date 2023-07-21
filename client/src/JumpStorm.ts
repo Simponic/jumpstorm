@@ -11,9 +11,16 @@ import {
 
 export class JumpStorm {
   private game: Game;
+  private socket: WebSocket;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.game = new Game();
+    this.socket = new WebSocket("ws://localhost:8080");
+
+    this.socket.onopen = () => {
+      this.socket.send("gaming");
+      console.log("OPENED SOCKET");
+    };
 
     [
       this.createInputSystem(),

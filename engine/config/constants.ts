@@ -32,3 +32,8 @@ export namespace PhysicsConstants {
   export const PLAYER_JUMP_ACC = -0.01;
   export const PLAYER_JUMP_INITIAL_VEL = -0.9;
 }
+
+export namespace Miscellaneous {
+  export const WIDTH = 600;
+  export const HEIGHT = 800;
+}

@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "module": "src/index.ts",
+  "module": "src/server.ts",
   "type": "module",
   "devDependencies": {
     "bun-types": "^0.6.14"

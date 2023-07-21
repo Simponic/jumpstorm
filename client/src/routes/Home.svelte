@@ -2,8 +2,11 @@
   import GameCanvas from "../components/GameCanvas.svelte";
   import LeaderBoard from "../components/LeaderBoard.svelte";
 
-  let width: number = 600;
-  let height: number = 800;
+  import { Miscellaneous } from "@engine/config";
+  
+  let width: number = Miscellaneous.WIDTH;
+  let height: number = Miscellaneous.HEIGHT;
+  
 </script>
 
 <div class="centered-game">

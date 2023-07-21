@@ -42,8 +42,8 @@ export class Collision extends System {
 
     Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
       game.componentEntities.get(componentName)
-    ).forEach((entityIds: Set<number>) =>
-      entityIds.forEach((id) => {
+    ).forEach((entityIds?: Set<number>) =>
+      entityIds?.forEach((id) => {
         const entity = game.entities.get(id);
         if (!entity.hasComponent(ComponentNames.BoundingBox)) {
           return;
