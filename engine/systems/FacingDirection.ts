@@ -3,6 +3,7 @@ import {
   Velocity,
   FacingDirection as FacingDirectionComponent,
 } from "../components";
+import { Game } from "../Game";
 import type { Entity } from "../entities";
 import { System, SystemNames } from "./";
 
@@ -11,15 +12,11 @@ export class FacingDirection extends System {
     super(SystemNames.FacingDirection);
   }
 
-  public update(
-    _dt: number,
-    entityMap: Map<number, Entity>,
-    componentEntities: Map<string, Set<number>>
-  ) {
-    componentEntities
+  public update(_dt: number, game: Game) {
+    game.componentEntities
       .get(ComponentNames.FacingDirection)
       ?.forEach((entityId) => {
-        const entity = entityMap.get(entityId);
+        const entity = game.entities.get(entityId);
         if (!entity.hasComponent(ComponentNames.Velocity)) {
           return;
         }

@@ -1,5 +1,5 @@
-import { Floor, Player } from "./entities";
-import { Game } from "./Game";
+import { Floor, Player } from "@engine/entities";
+import { Game } from "@engine/Game";
 import {
   WallBounds,
   FacingDirection,
@@ -7,7 +7,7 @@ import {
   Physics,
   Input,
   Collision,
-} from "./systems";
+} from "@engine/systems";
 
 export class JumpStorm {
   private game: Game;

@@ -6,6 +6,7 @@ import {
   Velocity,
   Mass,
 } from "../components";
+import { Game } from "../Game";
 import { KeyConstants, PhysicsConstants } from "../config";
 import type { Entity } from "../entities";
 import { Action } from "../interfaces";
@@ -34,13 +35,9 @@ export class Input extends System {
     return keys.some((key) => this.keys.has(key));
   }
 
-  public update(
-    dt: number,
-    entityMap: Map<number, Entity>,
-    componentEntities: Map<string, Set<number>>
-  ) {
-    componentEntities.get(ComponentNames.Control)?.forEach((entityId) => {
-      const entity = entityMap.get(entityId);
+  public update(dt: number, game: Game) {
+    game.componentEntities.get(ComponentNames.Control)?.forEach((entityId) => {
+      const entity = game.entities.get(entityId);
       if (!entity.hasComponent(ComponentNames.Velocity)) {
         return;
       }
@@ -58,8 +55,8 @@ export class Input extends System {
       }
     });
 
-    componentEntities.get(ComponentNames.Jump)?.forEach((entityId) => {
-      const entity = entityMap.get(entityId);
+    game.componentEntities.get(ComponentNames.Jump)?.forEach((entityId) => {
+      const entity = game.entities.get(entityId);
       const jump = entity.getComponent<Jump>(ComponentNames.Jump);
       const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
 

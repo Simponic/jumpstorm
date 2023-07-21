@@ -12,19 +12,16 @@ import {
 import { PhysicsConstants } from "../config";
 import type { Entity } from "../entities";
 import type { Force2D } from "../interfaces";
+import { Game } from "../Game";
 
 export class Physics extends System {
   constructor() {
     super(SystemNames.Physics);
   }
 
-  public update(
-    dt: number,
-    entityMap: Map<number, Entity>,
-    componentEntities: Map<string, Set<number>>
-  ): void {
-    componentEntities.get(ComponentNames.Forces)?.forEach((entityId) => {
-      const entity = entityMap.get(entityId);
+  public update(dt: number, game: Game): void {
+    game.componentEntities.get(ComponentNames.Forces)?.forEach((entityId) => {
+      const entity = game.entities.get(entityId);
 
       const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
       const forces = entity.getComponent<Forces>(ComponentNames.Forces).forces;
@@ -74,8 +71,8 @@ export class Physics extends System {
       }
     });
 
-    componentEntities.get(ComponentNames.Velocity)?.forEach((entityId) => {
-      const entity = entityMap.get(entityId);
+    game.componentEntities.get(ComponentNames.Velocity)?.forEach((entityId) => {
+      const entity = game.entities.get(entityId);
       const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
       const boundingBox = entity.getComponent<BoundingBox>(
         ComponentNames.BoundingBox

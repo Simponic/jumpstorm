@@ -2,18 +2,21 @@ import { Entity } from "./entities";
 import { System } from "./systems";
 
 export class Game {
-  private entities: Map<number, Entity>;
-  private systems: Map<string, System>;
   private systemOrder: string[];
 
   private running: boolean;
   private lastTimeStamp: number;
+
+  public entities: Map<number, Entity>;
+  public systems: Map<string, System>;
+  public componentEntities: Map<string, Set<number>>;
 
   constructor() {
     this.running = false;
     this.systemOrder = [];
     this.systems = new Map();
     this.entities = new Map();
+    this.componentEntities = new Map();
   }
 
   public start() {
@@ -52,19 +55,22 @@ export class Game {
     const dt = timeStamp - this.lastTimeStamp;
     this.lastTimeStamp = timeStamp;
 
-    const componentEntities = new Map<string, Set<number>>();
+    this.componentEntities.clear();
     this.entities.forEach((entity) =>
       entity.getComponents().forEach((component) => {
-        if (!componentEntities.has(component.name)) {
-          componentEntities.set(component.name, new Set<number>([entity.id]));
+        if (!this.componentEntities.has(component.name)) {
+          this.componentEntities.set(
+            component.name,
+            new Set<number>([entity.id])
+          );
           return;
         }
-        componentEntities.get(component.name).add(entity.id);
+        this.componentEntities.get(component.name).add(entity.id);
       })
     );
 
     this.systemOrder.forEach((systemName) => {
-      this.systems.get(systemName).update(dt, this.entities, componentEntities);
+      this.systems.get(systemName).update(dt, this);
     });
   };
 }

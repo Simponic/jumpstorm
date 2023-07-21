@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type LeaderBoardEntry } from "../../lib/interfaces";
+  import { type LeaderBoardEntry } from "@engine/interfaces";
 
   export let entry: LeaderBoardEntry = {
     name: "simponic",

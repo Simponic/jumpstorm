@@ -1,4 +1,5 @@
 import { Entity } from "../entities";
+import { Game } from "../Game";
 
 export abstract class System {
   public readonly name: string;
@@ -7,9 +8,5 @@ export abstract class System {
     this.name = name;
   }
 
-  abstract update(
-    dt: number,
-    entityMap: Map<number, Entity>,
-    componentEntities: Map<string, Set<number>>
-  ): void;
+  abstract update(dt: number, game: Game): void;
 }

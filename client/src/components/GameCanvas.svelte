@@ -1,11 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Game } from "../../lib/Game";
-  import { Render } from "../../lib/systems";
-  import { Floor } from "../../lib/entities";
-  import { loadAssets } from "../../lib/config";
-  import { JumpStorm } from "../../lib/JumpStorm";
-
+  import { loadAssets } from "@engine/config";
+  import { JumpStorm} from "../Jumpstorm";
+  
   let canvas: HTMLCanvasElement;
   let ctx: CanvasRenderingContext2D;
 

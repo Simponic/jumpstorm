@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type LeaderBoardEntry } from "../../lib/interfaces";
+  import { type LeaderBoardEntry } from "@engine/interfaces";
   import LeaderBoardCard from "./LeaderBoardCard.svelte";
 
   const MAX_ENTRIES = 8;

@@ -7,13 +7,14 @@ import {
   Velocity,
   Moment,
 } from "../components";
+import { Game } from "../Game";
 import { PhysicsConstants } from "../config";
 import { Entity } from "../entities";
 import type { Dimension2D } from "../interfaces";
 import { QuadTree } from "../structures";
 
 export class Collision extends System {
-  private static readonly COLLIDABLE_COMPONENTS = [
+  private static readonly COLLIDABLE_COMPONENT_NAMES = [
     ComponentNames.Collide,
     ComponentNames.TopCollidable,
   ];
@@ -33,19 +34,17 @@ export class Collision extends System {
     );
   }
 
-  public update(
-    dt: number,
-    entityMap: Map<number, Entity>,
-    entityComponents: Map<string, Set<number>>
-  ) {
+  public update(dt: number, game: Game) {
+    // rebuild the quadtree
     this.quadTree.clear();
 
     const entitiesToAddToQuadtree: Entity[] = [];
-    Collision.COLLIDABLE_COMPONENTS.map((componentName) =>
-      entityComponents.get(componentName)
+
+    Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
+      game.componentEntities.get(componentName)
     ).forEach((entityIds: Set<number>) =>
       entityIds.forEach((id) => {
-        const entity = entityMap.get(id);
+        const entity = game.entities.get(id);
         if (!entity.hasComponent(ComponentNames.BoundingBox)) {
           return;
         }
@@ -65,13 +64,15 @@ export class Collision extends System {
       );
     });
 
+    // find colliding entities and perform collisions
     const collidingEntities = this.getCollidingEntities(
       entitiesToAddToQuadtree,
-      entityMap
+      game.entities
     );
+
     collidingEntities.forEach(([entityAId, entityBId]) => {
       const [entityA, entityB] = [entityAId, entityBId].map((id) =>
-        entityMap.get(id)
+        game.entities.get(id)
       );
       this.performCollision(entityA, entityB);
     });
@@ -92,7 +93,7 @@ export class Collision extends System {
       entityB.hasComponent(ComponentNames.TopCollidable) &&
       entityABoundingBox.center.y <= entityBBoundingBox.center.y &&
       velocity &&
-      velocity.dCartesian.dy >= 0 // don't apply floor logic when coming through the bottom
+      velocity.dCartesian.dy >= 0 // don't apply "floor" logic when coming through the bottom
     ) {
       if (entityBBoundingBox.rotation != 0) {
         throw new Error(
@@ -157,11 +158,11 @@ export class Collision extends System {
     return collidingEntityIds;
   }
 
+  // ramblings: https://excalidraw.com/#json=z-xD86Za4a3duZuV2Oky0,KaGe-5iHJu1Si8inEo4GLQ
   private getDyToPushOutOfFloor(
     entityBoundingBox: BoundingBox,
     floorBoundingBox: BoundingBox
   ): number {
-    // ramblings: https://excalidraw.com/#json=z-xD86Za4a3duZuV2Oky0,KaGe-5iHJu1Si8inEo4GLQ
     const {
       rotation,
       center: { x, y },

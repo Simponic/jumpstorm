@@ -1,7 +1,9 @@
 import { System, SystemNames } from ".";
 import { BoundingBox, ComponentNames, Sprite } from "../components";
 import type { Entity } from "../entities";
+import { Game } from "../Game";
 import type { DrawArgs } from "../interfaces";
+import { clamp } from "../utils";
 
 export class Render extends System {
   private ctx: CanvasRenderingContext2D;
@@ -11,15 +13,11 @@ export class Render extends System {
     this.ctx = ctx;
   }
 
-  public update(
-    dt: number,
-    entityMap: Map<number, Entity>,
-    componentEntities: Map<string, Set<number>>
-  ) {
+  public update(dt: number, game: Game) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    componentEntities.get(ComponentNames.Sprite)?.forEach((entityId) => {
-      const entity = entityMap.get(entityId);
+    game.componentEntities.get(ComponentNames.Sprite)?.forEach((entityId) => {
+      const entity = game.entities.get(entityId);
       const sprite = entity.getComponent<Sprite>(ComponentNames.Sprite);
       sprite.update(dt);
 
@@ -28,6 +26,22 @@ export class Render extends System {
         const boundingBox = entity.getComponent<BoundingBox>(
           ComponentNames.BoundingBox
         );
+
+        // don't render if we're outside the screen
+        if (
+          clamp(
+            boundingBox.center.y,
+            -boundingBox.dimension.height / 2,
+            this.ctx.canvas.height + boundingBox.dimension.height / 2
+          ) != boundingBox.center.y ||
+          clamp(
+            boundingBox.center.x,
+            -boundingBox.dimension.width / 2,
+            this.ctx.canvas.width + boundingBox.dimension.width / 2
+          ) != boundingBox.center.x
+        ) {
+          return;
+        }
 
         drawArgs = {
           center: boundingBox.center,

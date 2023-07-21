@@ -24,5 +24,8 @@
     "src/**/*.js",
     "src/**/*.svelte"
   ],
+  "paths": {
+    "@engine/*": ["../engine/*"]
+  },
   "references": [{ "path": "./tsconfig.node.json" }]
 }
