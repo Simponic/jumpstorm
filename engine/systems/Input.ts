@@ -14,6 +14,7 @@ import { System, SystemNames } from "./";
 
 /**
  * TODO: Make velocities reset on each game loop (as similar to acceleration)
+ *   - Then, we can add / remove velocity on update instead of just setting it and praying it's not modified externally
  */
 export class Input extends System {
   private keys: Set<string>;
