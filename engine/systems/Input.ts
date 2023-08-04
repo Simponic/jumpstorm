@@ -12,6 +12,9 @@ import type { Entity } from "../entities";
 import { Action } from "../interfaces";
 import { System, SystemNames } from "./";
 
+/**
+ * TODO: Make velocities reset on each game loop (as similar to acceleration)
+ */
 export class Input extends System {
   private keys: Set<string>;
   private actionTimeStamps: Map<Action, number>;
