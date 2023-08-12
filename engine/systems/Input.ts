@@ -1,21 +1,16 @@
 import {
   Jump,
   Forces,
-  Acceleration,
   ComponentNames,
   Velocity,
   Mass,
+  Control,
 } from "../components";
 import { Game } from "../Game";
 import { KeyConstants, PhysicsConstants } from "../config";
-import type { Entity } from "../entities";
 import { Action } from "../interfaces";
 import { System, SystemNames } from "./";
 
-/**
- * TODO: Make velocities reset on each game loop (as similar to acceleration)
- *   - Then, we can add / remove velocity on update instead of just setting it and praying it's not modified externally
- */
 export class Input extends System {
   private keys: Set<string>;
   private actionTimeStamps: Map<Action, number>;
@@ -23,7 +18,7 @@ export class Input extends System {
   constructor() {
     super(SystemNames.Input);
 
-    this.keys = new Set<number>();
+    this.keys = new Set<string>();
     this.actionTimeStamps = new Map<Action, number>();
   }
 
@@ -35,51 +30,52 @@ export class Input extends System {
     this.keys.delete(key);
   }
 
-  private hasSomeKey(keys: string[]): boolean {
-    return keys.some((key) => this.keys.has(key));
+  private hasSomeKey(keys?: string[]): boolean {
+    if (keys) {
+      return keys.some((key) => this.keys.has(key));
+    }
+    return false;
   }
 
-  public update(dt: number, game: Game) {
-    game.componentEntities.get(ComponentNames.Control)?.forEach((entityId) => {
-      const entity = game.entities.get(entityId);
-      if (!entity.hasComponent(ComponentNames.Velocity)) {
-        return;
-      }
-
-      const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+  public update(_dt: number, game: Game) {
+    game.forEachEntityWithComponent(ComponentNames.Control, (entity) => {
+      const control = entity.getComponent<Control>(ComponentNames.Control);
 
       if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_RIGHT))) {
-        velocity.dCartesian.dx = PhysicsConstants.PLAYER_MOVE_VEL;
-      } else if (
-        this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_LEFT))
-      ) {
-        velocity.dCartesian.dx = -PhysicsConstants.PLAYER_MOVE_VEL;
-      } else {
-        velocity.dCartesian.dx = 0;
+        control.controlVelocity.dCartesian.dx +=
+          PhysicsConstants.PLAYER_MOVE_VEL;
       }
-    });
 
-    game.componentEntities.get(ComponentNames.Jump)?.forEach((entityId) => {
-      const entity = game.entities.get(entityId);
-      const jump = entity.getComponent<Jump>(ComponentNames.Jump);
-      const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+      if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_LEFT))) {
+        control.controlVelocity.dCartesian.dx +=
+          -PhysicsConstants.PLAYER_MOVE_VEL;
+      }
 
-      if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.JUMP))) {
-        if (jump.canJump) {
-          this.actionTimeStamps.set(Action.JUMP, performance.now());
+      if (entity.hasComponent(ComponentNames.Jump)) {
+        const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+        const jump = entity.getComponent<Jump>(ComponentNames.Jump);
 
-          velocity.dCartesian.dy = PhysicsConstants.PLAYER_JUMP_INITIAL_VEL;
-          jump.canJump = false;
-        }
+        if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.JUMP))) {
+          if (jump.canJump) {
+            this.actionTimeStamps.set(Action.JUMP, performance.now());
 
-        if (
-          performance.now() - this.actionTimeStamps.get(Action.JUMP) <
-          PhysicsConstants.MAX_JUMP_TIME_MS
-        ) {
-          const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
-          entity.getComponent<Forces>(ComponentNames.Forces)?.forces.push({
-            fCartesian: { fy: mass * PhysicsConstants.PLAYER_JUMP_ACC },
-          });
+            velocity.dCartesian.dy += PhysicsConstants.PLAYER_JUMP_INITIAL_VEL;
+            jump.canJump = false;
+          }
+
+          if (
+            performance.now() - (this.actionTimeStamps.get(Action.JUMP) || 0) <
+            PhysicsConstants.MAX_JUMP_TIME_MS
+          ) {
+            const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
+            entity.getComponent<Forces>(ComponentNames.Forces)?.forces.push({
+              fCartesian: {
+                fy: mass * PhysicsConstants.PLAYER_JUMP_ACC,
+                fx: 0,
+              },
+              torque: 0,
+            });
+          }
         }
       }
     });

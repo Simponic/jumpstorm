@@ -1,4 +1,3 @@
-import { Entity } from "../entities";
 import { Game } from "../Game";
 
 export abstract class System {

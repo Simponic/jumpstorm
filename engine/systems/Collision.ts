@@ -5,7 +5,7 @@ import {
   ComponentNames,
   Jump,
   Velocity,
-  Moment,
+  Forces,
 } from "../components";
 import { Game } from "../Game";
 import { PhysicsConstants } from "../config";
@@ -30,60 +30,64 @@ export class Collision extends System {
       { x: 0, y: 0 },
       screenDimensions,
       Collision.QUADTREE_MAX_LEVELS,
-      Collision.QUADTREE_SPLIT_THRESHOLD
+      Collision.QUADTREE_SPLIT_THRESHOLD,
     );
   }
 
-  public update(dt: number, game: Game) {
+  public update(_dt: number, game: Game) {
     // rebuild the quadtree
     this.quadTree.clear();
 
     const entitiesToAddToQuadtree: Entity[] = [];
 
     Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
-      game.componentEntities.get(componentName)
-    ).forEach((entityIds?: Set<number>) =>
-      entityIds?.forEach((id) => {
-        const entity = game.entities.get(id);
-        if (!entity.hasComponent(ComponentNames.BoundingBox)) {
-          return;
-        }
-        entitiesToAddToQuadtree.push(entity);
-      })
+      game.componentEntities.get(componentName),
+    ).forEach(
+      (entityIds?: Set<number>) =>
+        entityIds?.forEach((id) => {
+          const entity = game.entities.get(id);
+          if (!entity || !entity.hasComponent(ComponentNames.BoundingBox)) {
+            return;
+          }
+          entitiesToAddToQuadtree.push(entity);
+        }),
     );
 
     entitiesToAddToQuadtree.forEach((entity) => {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox
+        ComponentNames.BoundingBox,
       );
 
-      this.quadTree.insert(
-        entity.id,
-        boundingBox.dimension,
-        boundingBox.center
-      );
+      let dimension = { ...boundingBox.dimension };
+      if (boundingBox.rotation != 0) {
+        dimension = boundingBox.getOutscribedBoxDims();
+      }
+
+      this.quadTree.insert(entity.id, dimension, boundingBox.center);
     });
 
     // find colliding entities and perform collisions
     const collidingEntities = this.getCollidingEntities(
       entitiesToAddToQuadtree,
-      game.entities
+      game,
     );
 
     collidingEntities.forEach(([entityAId, entityBId]) => {
       const [entityA, entityB] = [entityAId, entityBId].map((id) =>
-        game.entities.get(id)
+        game.entities.get(id),
       );
-      this.performCollision(entityA, entityB);
+      if (entityA && entityB) {
+        this.performCollision(entityA, entityB);
+      }
     });
   }
 
   private performCollision(entityA: Entity, entityB: Entity) {
     const [entityABoundingBox, entityBBoundingBox] = [entityA, entityB].map(
-      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox)
+      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox),
     );
 
-    let velocity: Velocity;
+    let velocity = new Velocity();
     if (entityA.hasComponent(ComponentNames.Velocity)) {
       velocity = entityA.getComponent<Velocity>(ComponentNames.Velocity);
     }
@@ -92,17 +96,16 @@ export class Collision extends System {
       entityA.hasComponent(ComponentNames.Collide) &&
       entityB.hasComponent(ComponentNames.TopCollidable) &&
       entityABoundingBox.center.y <= entityBBoundingBox.center.y &&
-      velocity &&
       velocity.dCartesian.dy >= 0 // don't apply "floor" logic when coming through the bottom
     ) {
       if (entityBBoundingBox.rotation != 0) {
         throw new Error(
-          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`
+          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`,
         );
       }
 
       // remove previous velocity in the y axis
-      velocity.dCartesian.dy = 0;
+      if (velocity) velocity.dCartesian.dy = 0;
 
       // apply normal force
       if (entityA.hasComponent(ComponentNames.Gravity)) {
@@ -110,7 +113,8 @@ export class Collision extends System {
         const F_n = -mass * PhysicsConstants.GRAVITY;
 
         entityA.getComponent<Forces>(ComponentNames.Forces).forces.push({
-          fCartesian: { fy: F_n },
+          fCartesian: { fy: F_n, fx: 0 },
+          torque: 0,
         });
       }
 
@@ -128,31 +132,35 @@ export class Collision extends System {
 
   private getCollidingEntities(
     collidableEntities: Entity[],
-    entityMap: Map<number, Entity>
+    game: Game,
   ): [number, number][] {
-    const collidingEntityIds: [number, number] = [];
+    const collidingEntityIds: [number, number][] = [];
 
     for (const entity of collidableEntities) {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox
+        ComponentNames.BoundingBox,
       );
 
-      this.quadTree
+      const neighborIds = this.quadTree
         .getNeighborIds({
           id: entity.id,
           dimension: boundingBox.dimension,
           center: boundingBox.center,
         })
-        .filter((neighborId) => neighborId != entity.id)
-        .forEach((neighborId) => {
-          const neighborBoundingBox = entityMap
-            .get(neighborId)
-            .getComponent<BoundingBox>(ComponentNames.BoundingBox);
+        .filter((neighborId) => neighborId != entity.id);
 
-          if (boundingBox.isCollidingWith(neighborBoundingBox)) {
-            collidingEntityIds.push([entity.id, neighborId]);
-          }
-        });
+      neighborIds.forEach((neighborId) => {
+        const neighbor = game.getEntity(neighborId);
+        if (!neighbor) return;
+
+        const neighborBoundingBox = neighbor.getComponent<BoundingBox>(
+          ComponentNames.BoundingBox,
+        );
+
+        if (boundingBox.isCollidingWith(neighborBoundingBox)) {
+          collidingEntityIds.push([entity.id, neighborId]);
+        }
+      });
     }
 
     return collidingEntityIds;
@@ -161,55 +169,45 @@ export class Collision extends System {
   // ramblings: https://excalidraw.com/#json=z-xD86Za4a3duZuV2Oky0,KaGe-5iHJu1Si8inEo4GLQ
   private getDyToPushOutOfFloor(
     entityBoundingBox: BoundingBox,
-    floorBoundingBox: BoundingBox
+    floorBoundingBox: BoundingBox,
   ): number {
     const {
-      rotation,
-      center: { x, y },
       dimension: { width, height },
+      center: { x },
     } = entityBoundingBox;
 
-    let rads = rotation * (Math.PI / 180);
-    if (rads >= Math.PI) {
-      rads -= Math.PI; // we have symmetry so we can skip two cases
-    }
+    const outScribedRectangle = entityBoundingBox.getOutscribedBoxDims();
 
-    let boundedCollisionX = 0; // bounded x on the surface from width
-    let clippedX = 0; // x coordinate of the vertex below the surface
-    let outScribedRectangleHeight, dy, dx;
+    let rads = entityBoundingBox.getRotationInPiOfUnitCircle();
+    let dx = (width * Math.cos(rads) - height * Math.sin(rads)) / 2;
 
-    if (rads <= Math.PI / 2) {
-      dx = (width * Math.cos(rads) - height * Math.sin(rads)) / 2;
-      outScribedRectangleHeight =
-        width * Math.sin(rads) + height * Math.cos(rads);
-    } else if (rads <= Math.PI) {
+    if (rads >= Math.PI / 2) {
       rads -= Math.PI / 2;
       dx = (height * Math.cos(rads) - width * Math.sin(rads)) / 2;
-      outScribedRectangleHeight =
-        width * Math.cos(rads) + height * Math.sin(rads);
     }
 
+    const clippedX = x + dx; // x coordinate of the vertex below the surface (if existant)
+    let boundedCollisionX = 0; // bounded x on the surface from width
+
     if (x >= floorBoundingBox.center.x) {
-      clippedX = x + dx;
       boundedCollisionX = Math.min(
         floorBoundingBox.center.x + floorBoundingBox.dimension.width / 2,
-        clippedX
+        clippedX,
       );
       return (
-        outScribedRectangleHeight / 2 -
+        outScribedRectangle.height / 2 -
         Math.max((clippedX - boundedCollisionX) * Math.tan(rads), 0)
       );
     }
 
-    clippedX = x - dx;
     boundedCollisionX = Math.max(
       floorBoundingBox.center.x - floorBoundingBox.dimension.width / 2,
-      clippedX
+      clippedX,
     );
 
     return (
-      outScribedRectangleHeight / 2 -
-      Math.max((boundedCollisionX - clippedX) * Math.tan(rads), 0)
+      outScribedRectangle.height / 2 -
+      Math.max((boundedCollisionX - clippedX) * Math.tan(Math.PI / 2 - rads), 0)
     );
   }
 }

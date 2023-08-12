@@ -1,6 +1,4 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
-import { ComponentNames, BoundingBox } from "../components";
-import { Entity } from "../entities";
 
 interface BoxedEntry {
   id: number;
@@ -30,21 +28,26 @@ export class QuadTree {
     dimension: Dimension2D,
     maxLevels: number,
     splitThreshold: number,
-    level?: number
+    level?: number,
   ) {
-    this.children = [];
+    this.children = new Map<Quadrant, QuadTree>();
     this.objects = [];
 
     this.maxLevels = maxLevels;
     this.splitThreshold = splitThreshold;
     this.level = level ?? 0;
+
+    this.topLeft = topLeft;
+    this.dimension = dimension;
   }
 
   public insert(id: number, dimension: Dimension2D, center: Coord2D): void {
+    const box: BoxedEntry = { id, center, dimension };
     if (this.hasChildren()) {
-      this.getIndices(boundingBox).forEach((i) =>
-        this.children[i].insert(id, dimension, center)
-      );
+      this.getQuadrants(box).forEach((quadrant) => {
+        const quadrantBox = this.children.get(quadrant);
+        quadrantBox?.insert(id, dimension, center);
+      });
       return;
     }
 
@@ -74,9 +77,10 @@ export class QuadTree {
 
     if (this.hasChildren()) {
       this.getQuadrants(boxedEntry).forEach((quadrant) => {
-        this.children
-          .get(quadrant)
-          .getNeighborIds(boxedEntry)
+        const quadrantBox = this.children.get(quadrant);
+
+        quadrantBox
+          ?.getNeighborIds(boxedEntry)
           .forEach((id) => neighbors.push(id));
       });
     }
@@ -88,15 +92,17 @@ export class QuadTree {
     const halfWidth = this.dimension.width / 2;
     const halfHeight = this.dimension.height / 2;
 
-    [
-      [Quadrant.I, { x: this.topLeft.x + halfWidth, y: this.topLeft.y }],
-      [Quadrant.II, { ...this.topLeft }],
-      [Quadrant.III, { x: this.topLeft.x, y: this.topLeft.y + halfHeight }],
+    (
       [
-        Quadrant.IV,
-        { x: this.topLeft.x + halfWidth, y: this.topLeft.y + halfHeight },
-      ],
-    ].forEach(([quadrant, pos]) => {
+        [Quadrant.I, { x: this.topLeft.x + halfWidth, y: this.topLeft.y }],
+        [Quadrant.II, { ...this.topLeft }],
+        [Quadrant.III, { x: this.topLeft.x, y: this.topLeft.y + halfHeight }],
+        [
+          Quadrant.IV,
+          { x: this.topLeft.x + halfWidth, y: this.topLeft.y + halfHeight },
+        ],
+      ] as [[Quadrant, Coord2D]]
+    ).forEach(([quadrant, pos]) => {
       this.children.set(
         quadrant,
         new QuadTree(
@@ -104,34 +110,48 @@ export class QuadTree {
           { width: halfWidth, height: halfHeight },
           this.maxLevels,
           this.splitThreshold,
-          this.level + 1
-        )
+          this.level + 1,
+        ),
       );
     });
   }
 
-  private getQuandrants(boxedEntry: BoxedEntry): Quadrant[] {
+  private getQuadrants(boxedEntry: BoxedEntry): Quadrant[] {
     const treeCenter: Coord2D = {
       x: this.topLeft.x + this.dimension.width / 2,
       y: this.topLeft.y + this.dimension.height / 2,
     };
 
-    return [
-      [Quadrant.I, (x, y) => x >= treeCenter.x && y < treeCenter.y],
-      [Quadrant.II, (x, y) => x < treeCenter.x && y < treeCenter.y],
-      [Quadrant.III, (x, y) => x < treeCenter.x && y >= treeCenter.y],
-      [Quadrant.IV, (x, y) => x >= treeCenter.x && y >= treeCenter.y],
-    ]
+    return (
+      [
+        [
+          Quadrant.I,
+          (x: number, y: number) => x >= treeCenter.x && y < treeCenter.y,
+        ],
+        [
+          Quadrant.II,
+          (x: number, y: number) => x < treeCenter.x && y < treeCenter.y,
+        ],
+        [
+          Quadrant.III,
+          (x: number, y: number) => x < treeCenter.x && y >= treeCenter.y,
+        ],
+        [
+          Quadrant.IV,
+          (x: number, y: number) => x >= treeCenter.x && y >= treeCenter.y,
+        ],
+      ] as [[Quadrant, (x: number, y: number) => boolean]]
+    )
       .filter(
         ([_quadrant, condition]) =>
           condition(
             boxedEntry.center.x + boxedEntry.dimension.width / 2,
-            boxedEntry.center.y + boxedEntry.dimension.height / 2
+            boxedEntry.center.y + boxedEntry.dimension.height / 2,
           ) ||
           condition(
             boxedEntry.center.x - boxedEntry.dimension.width / 2,
-            boxedEntry.center.y - boxedEntry.dimension.height / 2
-          )
+            boxedEntry.center.y - boxedEntry.dimension.height / 2,
+          ),
       )
       .map(([quadrant]) => quadrant);
   }
@@ -139,9 +159,12 @@ export class QuadTree {
   private realignObjects(): void {
     this.objects.forEach((boxedEntry) => {
       this.getQuadrants(boxedEntry).forEach((direction) => {
-        this.children
-          .get(direction)
-          .insert(boxedEntry.id, boxedEntry.dimension, boxedEntry.center);
+        const quadrant = this.children.get(direction);
+        quadrant?.insert(
+          boxedEntry.id,
+          boxedEntry.dimension,
+          boxedEntry.center,
+        );
       });
     });
 
@@ -149,6 +172,6 @@ export class QuadTree {
   }
 
   private hasChildren() {
-    return this.children && this.children.length > 0;
+    return this.children && this.children.size > 0;
   }
 }

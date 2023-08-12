@@ -1,6 +1,5 @@
 import { System, SystemNames } from ".";
 import {
-  Acceleration,
   BoundingBox,
   ComponentNames,
   Forces,
@@ -8,9 +7,10 @@ import {
   Velocity,
   Mass,
   Jump,
+  Moment,
+  Control,
 } from "../components";
 import { PhysicsConstants } from "../config";
-import type { Entity } from "../entities";
 import type { Force2D } from "../interfaces";
 import { Game } from "../Game";
 
@@ -20,14 +20,12 @@ export class Physics extends System {
   }
 
   public update(dt: number, game: Game): void {
-    game.componentEntities.get(ComponentNames.Forces)?.forEach((entityId) => {
-      const entity = game.entities.get(entityId);
-
+    game.forEachEntityWithComponent(ComponentNames.Forces, (entity) => {
       const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
       const forces = entity.getComponent<Forces>(ComponentNames.Forces).forces;
       const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
       const inertia = entity.getComponent<Moment>(
-        ComponentNames.Moment
+        ComponentNames.Moment,
       ).inertia;
 
       // F_g = mg, applied only until terminal velocity is reached
@@ -37,7 +35,9 @@ export class Physics extends System {
           forces.push({
             fCartesian: {
               fy: mass * PhysicsConstants.GRAVITY,
+              fx: 0,
             },
+            torque: 0,
           });
         }
       }
@@ -51,7 +51,7 @@ export class Physics extends System {
           },
           torque: accum.torque + (torque ?? 0),
         }),
-        { fCartesian: { fx: 0, fy: 0 }, torque: 0 }
+        { fCartesian: { fx: 0, fy: 0 }, torque: 0 },
       );
 
       // integrate accelerations
@@ -62,6 +62,7 @@ export class Physics extends System {
       velocity.dCartesian.dx += ddx * dt;
       velocity.dCartesian.dy += ddy * dt;
       velocity.dTheta += (sumOfForces.torque * dt) / inertia;
+
       // clear the forces
       entity.getComponent<Forces>(ComponentNames.Forces).forces = [];
 
@@ -71,11 +72,17 @@ export class Physics extends System {
       }
     });
 
-    game.componentEntities.get(ComponentNames.Velocity)?.forEach((entityId) => {
-      const entity = game.entities.get(entityId);
-      const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+    game.forEachEntityWithComponent(ComponentNames.Velocity, (entity) => {
+      const velocity: Velocity = new Velocity();
+      const control = entity.getComponent<Control>(ComponentNames.Control);
+
+      velocity.add(entity.getComponent<Velocity>(ComponentNames.Velocity));
+      if (control) {
+        velocity.add(control.controlVelocity);
+      }
+
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox
+        ComponentNames.BoundingBox,
       );
 
       // integrate velocity
@@ -86,6 +93,11 @@ export class Physics extends System {
         (boundingBox.rotation < 0
           ? 360 + boundingBox.rotation
           : boundingBox.rotation) % 360;
+
+      // clear the control velocity
+      if (control) {
+        control.controlVelocity = new Velocity();
+      }
     });
   }
 }

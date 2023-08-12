@@ -17,7 +17,7 @@ export class Sprite extends Component {
     spriteImgPos: Coord2D,
     spriteImgDimensions: Dimension2D,
     msPerFrame: number,
-    numFrames: number
+    numFrames: number,
   ) {
     super(ComponentNames.Sprite);
 
@@ -44,7 +44,7 @@ export class Sprite extends Component {
 
     ctx.save();
     ctx.translate(center.x, center.y);
-    if (rotation != 0) {
+    if (rotation != undefined && rotation != 0) {
       ctx.rotate(rotation * (Math.PI / 180));
     }
     ctx.translate(-center.x, -center.y);
@@ -56,7 +56,7 @@ export class Sprite extends Component {
     ctx.drawImage(
       this.sheet,
       ...this.getSpriteArgs(),
-      ...this.getDrawArgs(drawArgs)
+      ...this.getDrawArgs(drawArgs),
     );
 
     if (tint) {

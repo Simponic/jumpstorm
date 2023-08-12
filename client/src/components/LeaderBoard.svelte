@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { type LeaderBoardEntry } from "@engine/interfaces";
   import LeaderBoardCard from "./LeaderBoardCard.svelte";
 
   const MAX_ENTRIES = 8;
 
-  export let entries: LeaderBoardEntry[] = [];
+  export let entries: { name: string, score: number }[] = [];
 </script>
 
 <div class="leaderboard">

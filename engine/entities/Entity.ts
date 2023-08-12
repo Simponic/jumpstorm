@@ -1,5 +1,4 @@
 import type { Component } from "../components";
-import { ComponentNotFoundError } from "../exceptions";
 
 export abstract class Entity {
   private static ID = 0;

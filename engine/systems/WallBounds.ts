@@ -14,23 +14,16 @@ export class WallBounds extends System {
   }
 
   public update(_dt: number, game: Game) {
-    game.componentEntities
-      .get(ComponentNames.WallBounded)
-      ?.forEach((entityId) => {
-        const entity = game.entities.get(entityId);
-        if (!entity.hasComponent(ComponentNames.BoundingBox)) {
-          return;
-        }
+    game.forEachEntityWithComponent(ComponentNames.WallBounded, (entity) => {
+      const boundingBox = entity.getComponent<BoundingBox>(
+        ComponentNames.BoundingBox,
+      );
 
-        const boundingBox = entity.getComponent<BoundingBox>(
-          ComponentNames.BoundingBox
-        );
-
-        boundingBox.center.x = clamp(
-          boundingBox.center.x,
-          boundingBox.dimension.width / 2,
-          this.screenWidth - boundingBox.dimension.width / 2
-        );
-      });
+      boundingBox.center.x = clamp(
+        boundingBox.center.x,
+        boundingBox.dimension.width / 2,
+        this.screenWidth - boundingBox.dimension.width / 2,
+      );
+    });
   }
 }

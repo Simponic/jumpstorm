@@ -17,11 +17,6 @@ export class JumpStorm {
     this.game = new Game();
     this.socket = new WebSocket("ws://localhost:8080");
 
-    this.socket.onopen = () => {
-      this.socket.send("gaming");
-      console.log("OPENED SOCKET");
-    };
-
     [
       this.createInputSystem(),
       new FacingDirection(),
@@ -32,7 +27,7 @@ export class JumpStorm {
     ].forEach((system) => this.game.addSystem(system));
 
     [new Floor(160), new Player()].forEach((entity) =>
-      this.game.addEntity(entity)
+      this.game.addEntity(entity),
     );
   }
 

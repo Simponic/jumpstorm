@@ -2,9 +2,9 @@ import {
   ComponentNames,
   Velocity,
   FacingDirection as FacingDirectionComponent,
+  Control,
 } from "../components";
 import { Game } from "../Game";
-import type { Entity } from "../entities";
 import { System, SystemNames } from "./";
 
 export class FacingDirection extends System {
@@ -13,24 +13,31 @@ export class FacingDirection extends System {
   }
 
   public update(_dt: number, game: Game) {
-    game.componentEntities
-      .get(ComponentNames.FacingDirection)
-      ?.forEach((entityId) => {
-        const entity = game.entities.get(entityId);
+    game.forEachEntityWithComponent(
+      ComponentNames.FacingDirection,
+      (entity) => {
         if (!entity.hasComponent(ComponentNames.Velocity)) {
           return;
         }
 
+        const totalVelocity: Velocity = new Velocity();
+        const control = entity.getComponent<Control>(ComponentNames.Control);
         const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+        totalVelocity.add(velocity);
+        if (control) {
+          totalVelocity.add(control.controlVelocity);
+        }
+
         const facingDirection = entity.getComponent<FacingDirectionComponent>(
-          ComponentNames.FacingDirection
+          ComponentNames.FacingDirection,
         );
 
-        if (velocity.dCartesian.dx > 0) {
+        if (totalVelocity.dCartesian.dx > 0) {
           entity.addComponent(facingDirection.facingRightSprite);
-        } else if (velocity.dCartesian.dx < 0) {
+        } else if (totalVelocity.dCartesian.dx < 0) {
           entity.addComponent(facingDirection.facingLeftSprite);
         }
-      });
+      },
+    );
   }
 }

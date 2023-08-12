@@ -1,21 +1,17 @@
 import { Game } from "../../engine/Game";
 import { Floor, Player } from "../../engine/entities";
-import {
-  WallBounds,
-  FacingDirection,
-  Physics,
-  Input,
-  Collision,
-} from "../../engine/systems";
+import { WallBounds, Physics, Collision } from "../../engine/systems";
 import { Miscellaneous } from "../../engine/config";
 
 const TICK_RATE = 60 / 1000;
 
 const game = new Game();
 
-[new Physics(), new Collision(), new WallBounds(Miscellaneous.WIDTH)].forEach(
-  (system) => game.addSystem(system)
-);
+[
+  new Physics(),
+  new Collision({ width: Miscellaneous.WIDTH, height: Miscellaneous.HEIGHT }),
+  new WallBounds(Miscellaneous.WIDTH),
+].forEach((system) => game.addSystem(system));
 
 [new Floor(160), new Player()].forEach((entity) => game.addEntity(entity));
 

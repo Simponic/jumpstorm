@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { type LeaderBoardEntry } from "@engine/interfaces";
-
-  export let entry: LeaderBoardEntry = {
+  export let entry = {
     name: "simponic",
     score: 100,
   };

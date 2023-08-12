@@ -11,12 +11,12 @@ export namespace KeyConstants {
   };
 
   export const ActionKeys: Map<Action, string[]> = Object.keys(
-    KeyActions
+    KeyActions,
   ).reduce((acc: Map<Action, string[]>, key) => {
     const action = KeyActions[key];
 
     if (acc.has(action)) {
-      acc.get(action).push(key);
+      acc.get(action)?.push(key);
       return acc;
     }
 
@@ -29,8 +29,8 @@ export namespace PhysicsConstants {
   export const MAX_JUMP_TIME_MS = 150;
   export const GRAVITY = 0.0075;
   export const PLAYER_MOVE_VEL = 1;
-  export const PLAYER_JUMP_ACC = -0.01;
-  export const PLAYER_JUMP_INITIAL_VEL = -0.9;
+  export const PLAYER_JUMP_ACC = -0.008;
+  export const PLAYER_JUMP_INITIAL_VEL = -1;
 }
 
 export namespace Miscellaneous {

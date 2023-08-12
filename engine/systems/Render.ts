@@ -1,8 +1,6 @@
 import { System, SystemNames } from ".";
 import { BoundingBox, ComponentNames, Sprite } from "../components";
-import type { Entity } from "../entities";
 import { Game } from "../Game";
-import type { DrawArgs } from "../interfaces";
 import { clamp } from "../utils";
 
 export class Render extends System {
@@ -16,39 +14,36 @@ export class Render extends System {
   public update(dt: number, game: Game) {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    game.componentEntities.get(ComponentNames.Sprite)?.forEach((entityId) => {
-      const entity = game.entities.get(entityId);
+    game.forEachEntityWithComponent(ComponentNames.Sprite, (entity) => {
       const sprite = entity.getComponent<Sprite>(ComponentNames.Sprite);
       sprite.update(dt);
 
-      let drawArgs: DrawArgs;
-      if (entity.hasComponent(ComponentNames.BoundingBox)) {
-        const boundingBox = entity.getComponent<BoundingBox>(
-          ComponentNames.BoundingBox
-        );
+      const boundingBox = entity.getComponent<BoundingBox>(
+        ComponentNames.BoundingBox,
+      );
 
-        // don't render if we're outside the screen
-        if (
-          clamp(
-            boundingBox.center.y,
-            -boundingBox.dimension.height / 2,
-            this.ctx.canvas.height + boundingBox.dimension.height / 2
-          ) != boundingBox.center.y ||
-          clamp(
-            boundingBox.center.x,
-            -boundingBox.dimension.width / 2,
-            this.ctx.canvas.width + boundingBox.dimension.width / 2
-          ) != boundingBox.center.x
-        ) {
-          return;
-        }
-
-        drawArgs = {
-          center: boundingBox.center,
-          dimension: boundingBox.dimension,
-          rotation: boundingBox.rotation,
-        };
+      // don't render if we're outside the screen
+      if (
+        clamp(
+          boundingBox.center.y,
+          -boundingBox.dimension.height / 2,
+          this.ctx.canvas.height + boundingBox.dimension.height / 2,
+        ) != boundingBox.center.y ||
+        clamp(
+          boundingBox.center.x,
+          -boundingBox.dimension.width / 2,
+          this.ctx.canvas.width + boundingBox.dimension.width / 2,
+        ) != boundingBox.center.x
+      ) {
+        return;
       }
+
+      const drawArgs = {
+        center: boundingBox.center,
+        dimension: boundingBox.dimension,
+        rotation: boundingBox.rotation,
+      };
+
       sprite.draw(this.ctx, drawArgs);
     });
   }

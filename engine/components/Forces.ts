@@ -1,4 +1,4 @@
-import type { Accel2D, Force2D } from "../interfaces";
+import type { Force2D } from "../interfaces";
 import { Component } from "./Component";
 import { ComponentNames } from ".";
 

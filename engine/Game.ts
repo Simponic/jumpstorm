@@ -12,6 +12,7 @@ export class Game {
   public componentEntities: Map<string, Set<number>>;
 
   constructor() {
+    this.lastTimeStamp = performance.now();
     this.running = false;
     this.systemOrder = [];
     this.systems = new Map();
@@ -28,12 +29,24 @@ export class Game {
     this.entities.set(entity.id, entity);
   }
 
-  public getEntity(id: number): Entity {
+  public getEntity(id: number): Entity | undefined {
     return this.entities.get(id);
   }
 
   public removeEntity(id: number) {
     this.entities.delete(id);
+  }
+
+  public forEachEntityWithComponent(
+    componentName: string,
+    callback: (entity: Entity) => void,
+  ) {
+    this.componentEntities.get(componentName)?.forEach((entityId) => {
+      const entity = this.getEntity(entityId);
+      if (!entity) return;
+
+      callback(entity);
+    });
   }
 
   public addSystem(system: System) {
@@ -43,7 +56,7 @@ export class Game {
     this.systems.set(system.name, system);
   }
 
-  public getSystem(name: string): System {
+  public getSystem(name: string): System | undefined {
     return this.systems.get(name);
   }
 
@@ -62,16 +75,16 @@ export class Game {
         if (!this.componentEntities.has(component.name)) {
           this.componentEntities.set(
             component.name,
-            new Set<number>([entity.id])
+            new Set<number>([entity.id]),
           );
           return;
         }
-        this.componentEntities.get(component.name).add(entity.id);
-      })
+        this.componentEntities.get(component.name)?.add(entity.id);
+      }),
     );
 
     this.systemOrder.forEach((systemName) => {
-      this.systems.get(systemName).update(dt, this);
+      this.systems.get(systemName)?.update(dt, this);
     });
   };
 }

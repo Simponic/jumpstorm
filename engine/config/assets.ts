@@ -4,7 +4,7 @@ import { SPRITE_SPECS } from "./sprites";
 export const IMAGES = new Map<string, HTMLImageElement>();
 
 export const loadSpritesIntoImageElements = (
-  spriteSpecs: Partial<SpriteSpec>[]
+  spriteSpecs: Partial<SpriteSpec>[],
 ): Promise<void>[] => {
   const spritePromises: Promise<void>[] = [];
 
@@ -17,13 +17,13 @@ export const loadSpritesIntoImageElements = (
       spritePromises.push(
         new Promise((resolve) => {
           img.onload = () => resolve();
-        })
+        }),
       );
     }
 
     if (spriteSpec.states) {
       spritePromises.push(
-        ...loadSpritesIntoImageElements(Object.values(spriteSpec.states))
+        ...loadSpritesIntoImageElements(Array.from(spriteSpec.states.values())),
       );
     }
   }
@@ -34,7 +34,9 @@ export const loadSpritesIntoImageElements = (
 export const loadAssets = () =>
   Promise.all([
     ...loadSpritesIntoImageElements(
-      Array.from(SPRITE_SPECS.keys()).map((key) => SPRITE_SPECS.get(key))
+      Array.from(SPRITE_SPECS.keys()).map(
+        (key) => SPRITE_SPECS.get(key) as SpriteSpec,
+      ),
     ),
     // TODO: Sound
   ]);
