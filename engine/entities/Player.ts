@@ -35,7 +35,9 @@ export class Player extends Entity {
       ),
     );
 
-    this.addComponent(new Velocity({ dx: 0, dy: 0 }, 0));
+    this.addComponent(
+      new Velocity({ dCartesian: { dx: 0, dy: 0 }, dTheta: 0 }),
+    );
 
     this.addComponent(new Mass(Player.MASS));
     this.addComponent(new Moment(Player.MOI));

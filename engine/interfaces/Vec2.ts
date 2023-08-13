@@ -9,8 +9,11 @@ export interface Dimension2D {
 }
 
 export interface Velocity2D {
-  dx: number;
-  dy: number;
+  dCartesian: {
+    dx: number;
+    dy: number;
+  };
+  dTheta: number;
 }
 
 export interface Force2D {

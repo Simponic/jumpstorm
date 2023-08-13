@@ -11,7 +11,7 @@ import {
   Control,
 } from "../components";
 import { PhysicsConstants } from "../config";
-import type { Force2D } from "../interfaces";
+import type { Force2D, Velocity2D } from "../interfaces";
 import { Game } from "../Game";
 
 export class Physics extends System {
@@ -23,7 +23,9 @@ export class Physics extends System {
     game.forEachEntityWithComponent(ComponentNames.Forces, (entity) => {
       const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
       const forces = entity.getComponent<Forces>(ComponentNames.Forces).forces;
-      const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+      const velocity = entity.getComponent<Velocity>(
+        ComponentNames.Velocity,
+      ).velocity;
       const inertia = entity.getComponent<Moment>(
         ComponentNames.Moment,
       ).inertia;
@@ -73,12 +75,14 @@ export class Physics extends System {
     });
 
     game.forEachEntityWithComponent(ComponentNames.Velocity, (entity) => {
-      const velocity: Velocity = new Velocity();
+      const velocityComponent: Velocity = new Velocity();
       const control = entity.getComponent<Control>(ComponentNames.Control);
 
-      velocity.add(entity.getComponent<Velocity>(ComponentNames.Velocity));
+      velocityComponent.add(
+        entity.getComponent<Velocity>(ComponentNames.Velocity).velocity,
+      );
       if (control) {
-        velocity.add(control.controlVelocity);
+        velocityComponent.add(control.controlVelocityComponent.velocity);
       }
 
       const boundingBox = entity.getComponent<BoundingBox>(
@@ -86,9 +90,9 @@ export class Physics extends System {
       );
 
       // integrate velocity
-      boundingBox.center.x += velocity.dCartesian.dx * dt;
-      boundingBox.center.y += velocity.dCartesian.dy * dt;
-      boundingBox.rotation += velocity.dTheta * dt;
+      boundingBox.center.x += velocityComponent.velocity.dCartesian.dx * dt;
+      boundingBox.center.y += velocityComponent.velocity.dCartesian.dy * dt;
+      boundingBox.rotation += velocityComponent.velocity.dTheta * dt;
       boundingBox.rotation =
         (boundingBox.rotation < 0
           ? 360 + boundingBox.rotation
@@ -96,7 +100,7 @@ export class Physics extends System {
 
       // clear the control velocity
       if (control) {
-        control.controlVelocity = new Velocity();
+        control.controlVelocityComponent = new Velocity();
       }
     });
   }

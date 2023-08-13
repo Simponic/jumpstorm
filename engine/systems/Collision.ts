@@ -10,7 +10,7 @@ import {
 import { Game } from "../Game";
 import { PhysicsConstants } from "../config";
 import { Entity } from "../entities";
-import type { Dimension2D } from "../interfaces";
+import type { Dimension2D, Velocity2D } from "../interfaces";
 import { QuadTree } from "../structures";
 
 export class Collision extends System {
@@ -91,9 +91,11 @@ export class Collision extends System {
       (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox),
     );
 
-    let velocity = new Velocity();
+    let velocity: Velocity2D = { dCartesian: { dx: 0, dy: 0 }, dTheta: 0 };
     if (entityA.hasComponent(ComponentNames.Velocity)) {
-      velocity = entityA.getComponent<Velocity>(ComponentNames.Velocity);
+      velocity = entityA.getComponent<Velocity>(
+        ComponentNames.Velocity,
+      ).velocity;
     }
 
     if (

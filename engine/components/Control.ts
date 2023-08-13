@@ -1,11 +1,11 @@
 import { Component, ComponentNames, Velocity } from ".";
 
 export class Control extends Component {
-  public controlVelocity: Velocity;
+  public controlVelocityComponent: Velocity;
 
-  constructor(controlVelocity: Velocity = new Velocity()) {
+  constructor(controlVelocityComponent: Velocity = new Velocity()) {
     super(ComponentNames.Control);
 
-    this.controlVelocity = controlVelocity;
+    this.controlVelocityComponent = controlVelocityComponent;
   }
 }

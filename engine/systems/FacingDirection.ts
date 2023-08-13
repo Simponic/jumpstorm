@@ -20,21 +20,24 @@ export class FacingDirection extends System {
           return;
         }
 
-        const totalVelocity: Velocity = new Velocity();
+        const totalVelocityComponent = new Velocity();
         const control = entity.getComponent<Control>(ComponentNames.Control);
-        const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
-        totalVelocity.add(velocity);
+        const velocity = entity.getComponent<Velocity>(
+          ComponentNames.Velocity,
+        ).velocity;
+
+        totalVelocityComponent.add(velocity);
         if (control) {
-          totalVelocity.add(control.controlVelocity);
+          totalVelocityComponent.add(control.controlVelocityComponent.velocity);
         }
 
         const facingDirection = entity.getComponent<FacingDirectionComponent>(
           ComponentNames.FacingDirection,
         );
 
-        if (totalVelocity.dCartesian.dx > 0) {
+        if (totalVelocityComponent.velocity.dCartesian.dx > 0) {
           entity.addComponent(facingDirection.facingRightSprite);
-        } else if (totalVelocity.dCartesian.dx < 0) {
+        } else if (totalVelocityComponent.velocity.dCartesian.dx < 0) {
           entity.addComponent(facingDirection.facingLeftSprite);
         }
       },

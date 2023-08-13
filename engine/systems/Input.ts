@@ -39,20 +39,24 @@ export class Input extends System {
 
   public update(_dt: number, game: Game) {
     game.forEachEntityWithComponent(ComponentNames.Control, (entity) => {
-      const control = entity.getComponent<Control>(ComponentNames.Control);
+      const controlComponent = entity.getComponent<Control>(
+        ComponentNames.Control,
+      );
 
       if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_RIGHT))) {
-        control.controlVelocity.dCartesian.dx +=
+        controlComponent.controlVelocityComponent.velocity.dCartesian.dx +=
           PhysicsConstants.PLAYER_MOVE_VEL;
       }
 
       if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_LEFT))) {
-        control.controlVelocity.dCartesian.dx +=
+        controlComponent.controlVelocityComponent.velocity.dCartesian.dx +=
           -PhysicsConstants.PLAYER_MOVE_VEL;
       }
 
       if (entity.hasComponent(ComponentNames.Jump)) {
-        const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+        const velocity = entity.getComponent<Velocity>(
+          ComponentNames.Velocity,
+        ).velocity;
         const jump = entity.getComponent<Jump>(ComponentNames.Jump);
 
         if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.JUMP))) {
