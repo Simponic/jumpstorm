@@ -6,3 +6,4 @@ export * from "./Input";
 export * from "./FacingDirection";
 export * from "./Collision";
 export * from "./WallBounds";
+export * from "./NetworkUpdate";

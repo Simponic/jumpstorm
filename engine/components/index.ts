@@ -12,4 +12,5 @@ export * from "./WallBounded";
 export * from "./Gravity";
 export * from "./Mass";
 export * from "./Moment";
+export * from "./NetworkUpdateable";
 export * from "./names";

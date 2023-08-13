@@ -12,4 +12,5 @@ export namespace ComponentNames {
   export const Forces = "Forces";
   export const Mass = "Mass";
   export const Moment = "Moment";
+  export const NetworkUpdateable = "NetworkUpdateable";
 }

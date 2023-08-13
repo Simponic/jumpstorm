@@ -9,7 +9,7 @@ import {
 import { Game } from "../Game";
 import { KeyConstants, PhysicsConstants } from "../config";
 import { Action } from "../interfaces";
-import { System, SystemNames } from "./";
+import { System, SystemNames } from ".";
 
 export class Input extends System {
   private keys: Set<string>;

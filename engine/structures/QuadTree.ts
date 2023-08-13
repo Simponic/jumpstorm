@@ -41,17 +41,16 @@ export class QuadTree {
     this.dimension = dimension;
   }
 
-  public insert(id: number, dimension: Dimension2D, center: Coord2D): void {
-    const box: BoxedEntry = { id, center, dimension };
+  public insert(boxedEntry: BoxedEntry): void {
     if (this.hasChildren()) {
-      this.getQuadrants(box).forEach((quadrant) => {
+      this.getQuadrants(boxedEntry).forEach((quadrant) => {
         const quadrantBox = this.children.get(quadrant);
-        quadrantBox?.insert(id, dimension, center);
+        quadrantBox?.insert(boxedEntry);
       });
       return;
     }
 
-    this.objects.push({ id, dimension, center });
+    this.objects.push(boxedEntry);
 
     if (
       this.objects.length > this.splitThreshold &&
@@ -66,6 +65,7 @@ export class QuadTree {
 
   public clear(): void {
     this.objects = [];
+
     if (this.hasChildren()) {
       this.children.forEach((child) => child.clear());
       this.children.clear();

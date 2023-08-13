@@ -63,7 +63,11 @@ export class Collision extends System {
         dimension = boundingBox.getOutscribedBoxDims();
       }
 
-      this.quadTree.insert(entity.id, dimension, boundingBox.center);
+      this.quadTree.insert({
+        id: entity.id,
+        dimension,
+        center: boundingBox.center,
+      });
     });
 
     // find colliding entities and perform collisions

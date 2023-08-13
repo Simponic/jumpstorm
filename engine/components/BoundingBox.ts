@@ -47,8 +47,9 @@ export class BoundingBox extends Component {
       { x: this.dimension.width / 2, y: this.dimension.height / 2 },
       { x: this.dimension.width / 2, y: -this.dimension.height / 2 },
     ]
-      .map((vertex) => rotateVector(vertex, this.rotation))
+      .map((vertex) => rotateVector(vertex, this.rotation)) // rotate
       .map((vertex) => {
+        // translate
         return {
           x: vertex.x + this.center.x,
           y: vertex.y + this.center.y,
@@ -56,9 +57,10 @@ export class BoundingBox extends Component {
       });
   }
 
-  public getRotationInPiOfUnitCircle() {
+  public getRotationInPiOfUnitCircle(): number {
     let rads = this.rotation * (Math.PI / 180);
     if (rads >= Math.PI) {
+      // Physics system guarantees rotation \in [0, 360)
       rads -= Math.PI;
     }
     return rads;
