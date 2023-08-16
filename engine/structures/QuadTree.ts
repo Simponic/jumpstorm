@@ -1,7 +1,7 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
 
 interface BoxedEntry {
-  id: number;
+  id: string;
   dimension: Dimension2D;
   center: Coord2D;
 }
@@ -72,8 +72,8 @@ export class QuadTree {
     }
   }
 
-  public getNeighborIds(boxedEntry: BoxedEntry): number[] {
-    const neighbors: number[] = this.objects.map(({ id }) => id);
+  public getNeighborIds(boxedEntry: BoxedEntry): string[] {
+    const neighbors: string[] = this.objects.map(({ id }) => id);
 
     if (this.hasChildren()) {
       this.getQuadrants(boxedEntry).forEach((quadrant) => {
@@ -160,11 +160,7 @@ export class QuadTree {
     this.objects.forEach((boxedEntry) => {
       this.getQuadrants(boxedEntry).forEach((direction) => {
         const quadrant = this.children.get(direction);
-        quadrant?.insert(
-          boxedEntry.id,
-          boxedEntry.dimension,
-          boxedEntry.center,
-        );
+        quadrant?.insert(boxedEntry);
       });
     });
 

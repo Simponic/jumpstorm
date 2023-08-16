@@ -7,9 +7,9 @@ export class Game {
   private running: boolean;
   private lastTimeStamp: number;
 
-  public entities: Map<number, Entity>;
+  public entities: Map<string, Entity>;
   public systems: Map<string, System>;
-  public componentEntities: Map<string, Set<number>>;
+  public componentEntities: Map<string, Set<string>>;
 
   constructor() {
     this.lastTimeStamp = performance.now();
@@ -29,11 +29,11 @@ export class Game {
     this.entities.set(entity.id, entity);
   }
 
-  public getEntity(id: number): Entity | undefined {
+  public getEntity(id: string): Entity | undefined {
     return this.entities.get(id);
   }
 
-  public removeEntity(id: number) {
+  public removeEntity(id: string) {
     this.entities.delete(id);
   }
 
@@ -75,7 +75,7 @@ export class Game {
         if (!this.componentEntities.has(component.name)) {
           this.componentEntities.set(
             component.name,
-            new Set<number>([entity.id]),
+            new Set<string>([entity.id]),
           );
           return;
         }

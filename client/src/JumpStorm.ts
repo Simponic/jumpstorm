@@ -7,15 +7,63 @@ import {
   Physics,
   Input,
   Collision,
+  MessageQueueProvider,
+  MessagePublisher,
+  NetworkUpdate,
 } from "@engine/systems";
+
+class ClientSocketMessageQueueProvider implements MessageQueueProvider {
+  private socket: WebSocket;
+  private messages: any[];
+
+  constructor(socket: WebSocket) {
+    this.socket = socket;
+    this.messages = [];
+
+    this.socket.addEventListener("message", (e) => {
+      console.log(e);
+    });
+  }
+
+  getNewMessages() {
+    return this.messages;
+  }
+
+  clearMessages() {
+    this.messages = [];
+  }
+}
+
+class ClientSocketMessagePublisher implements MessagePublisher {
+  private socket: WebSocket;
+  private messages: any[];
+
+  constructor(socket: WebSocket) {
+    this.socket = socket;
+    this.messages = [];
+
+    this.socket.addEventListener("message", (e) => {
+      console.log(e);
+    });
+  }
+
+  addMessage(_message: any) {}
+
+  publish() {}
+}
 
 export class JumpStorm {
   private game: Game;
-  private socket: WebSocket;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.game = new Game();
-    this.socket = new WebSocket("ws://localhost:8080");
+
+    const socket = new WebSocket("ws://localhost:8080");
+    const clientSocketMessageQueueProvider =
+      new ClientSocketMessageQueueProvider(socket);
+    const clientSocketMessagePublisher = new ClientSocketMessagePublisher(
+      socket,
+    );
 
     [
       this.createInputSystem(),
@@ -23,6 +71,10 @@ export class JumpStorm {
       new Physics(),
       new Collision(),
       new WallBounds(ctx.canvas.width),
+      new NetworkUpdate(
+        clientSocketMessageQueueProvider,
+        clientSocketMessagePublisher,
+      ),
       new Render(ctx),
     ].forEach((system) => this.game.addSystem(system));
 
@@ -49,6 +101,7 @@ export class JumpStorm {
         inputSystem.keyPressed(e.key);
       }
     });
+
     window.addEventListener("keyup", (e) => inputSystem.keyReleased(e.key));
 
     return inputSystem;

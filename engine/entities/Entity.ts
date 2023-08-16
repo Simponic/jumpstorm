@@ -1,13 +1,11 @@
 import type { Component } from "../components";
 
 export abstract class Entity {
-  private static ID = 0;
-
-  public readonly id: number;
+  public readonly id: string;
   public readonly components: Map<string, Component>;
 
   constructor() {
-    this.id = Entity.ID++;
+    this.id = crypto.randomUUID();
     this.components = new Map();
   }
 
