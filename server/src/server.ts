@@ -11,50 +11,38 @@ import { Miscellaneous } from "../../engine/config";
 
 const TICK_RATE = 60 / 1000;
 
-class Server {
-  private server: any;
-  private game: Game;
+const game = new Game();
 
-  constructor() {
-    this.game = new Game();
+[new Physics(), new Collision(), new WallBounds(Miscellaneous.WIDTH)].forEach(
+  (system) => game.addSystem(system),
+);
 
-    [
-      new Physics(),
-      new Collision({
-        width: Miscellaneous.WIDTH,
-        height: Miscellaneous.HEIGHT,
-      }),
-      new WallBounds(Miscellaneous.WIDTH),
-    ].forEach((system) => this.game.addSystem(system));
+[new Floor(160), new Player()].forEach((entity) => game.addEntity(entity));
 
-    [new Floor(160), new Player()].forEach((entity) =>
-      this.game.addEntity(entity),
-    );
+game.start();
 
-    this.game.start();
-    setInterval(() => {
-      this.game.doGameLoop(performance.now());
-    }, TICK_RATE);
+setInterval(() => {
+  game.doGameLoop(performance.now());
+}, TICK_RATE);
 
-    this.server = Bun.serve<any>({
-      websocket: {
-        open(ws) {
-          ws.subscribe("the-group-chat");
-          ws.publish("the-group-chat", msg);
-        },
-        message(ws, message) {
-          // this is a group chat
-          // so the server re-broadcasts incoming message to everyone
-          ws.publish("the-group-chat", `${ws.data.username}: ${message}`);
-        },
-        close(ws) {
-          const msg = `${ws.data.username} has left the chat`;
-          ws.unsubscribe("the-group-chat");
-          ws.publish("the-group-chat", msg);
-        },
+const server = Bun.serve({
+  port: 8080,
+  fetch(req, server) {
+    const sessionId = Math.floor(Math.random() * 1e10).toString();
+
+    server.upgrade(req, {
+      headers: {
+        "Set-Cookie": `SessionId=${sessionId}`,
       },
     });
-  }
-}
+  },
+  websocket: {
+    open(ws) {},
+    message(ws, message) {
+      console.log(message);
+    },
+    close(ws) {},
+  },
+});
 
-new Server();
+console.log(`Listening on ${server.hostname}:${server.port}`);

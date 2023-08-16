@@ -1,6 +1,6 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
 
-interface BoxedEntry {
+export interface BoxedEntry {
   id: string;
   dimension: Dimension2D;
   center: Coord2D;
@@ -169,5 +169,13 @@ export class QuadTree {
 
   private hasChildren() {
     return this.children && this.children.size > 0;
+  }
+
+  public setTopLeft(topLeft: Coord2D) {
+    this.topLeft = topLeft;
+  }
+
+  public setDimension(dimension: Dimension2D) {
+    this.dimension = dimension;
   }
 }

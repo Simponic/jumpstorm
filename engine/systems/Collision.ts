@@ -10,8 +10,8 @@ import {
 import { Game } from "../Game";
 import { PhysicsConstants } from "../config";
 import { Entity } from "../entities";
-import type { Dimension2D, Velocity2D } from "../interfaces";
-import { QuadTree } from "../structures";
+import type { Coord2D, Dimension2D, Velocity2D } from "../interfaces";
+import { QuadTree, BoxedEntry } from "../structures";
 
 export class Collision extends System {
   private static readonly COLLIDABLE_COMPONENT_NAMES = [
@@ -41,19 +41,26 @@ export class Collision extends System {
     const entitiesToAddToQuadtree: Entity[] = [];
 
     Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
-      game.componentEntities.get(componentName),
-    ).forEach(
-      (entityIds?: Set<number>) =>
-        entityIds?.forEach((id) => {
-          const entity = game.entities.get(id);
-          if (!entity || !entity.hasComponent(ComponentNames.BoundingBox)) {
-            return;
-          }
-          entitiesToAddToQuadtree.push(entity);
-        }),
+      game.forEachEntityWithComponent(componentName, (entity) => {
+        if (!entity.hasComponent(ComponentNames.BoundingBox)) {
+          return;
+        }
+        entitiesToAddToQuadtree.push(entity);
+      }),
     );
 
-    entitiesToAddToQuadtree.forEach((entity) => {
+    this.insertEntitiesInQuadTreeAndUpdateBounds(entitiesToAddToQuadtree);
+
+    this.findCollidingEntitiesAndCollide(entitiesToAddToQuadtree, game);
+  }
+
+  private insertEntitiesInQuadTreeAndUpdateBounds(entities: Entity[]) {
+    const topLeft: Coord2D = { x: Infinity, y: Infinity };
+    const bottomRight: Coord2D = { x: -Infinity, y: -Infinity };
+
+    const quadTreeInsertions: BoxedEntry[] = [];
+
+    entities.forEach((entity) => {
       const boundingBox = entity.getComponent<BoundingBox>(
         ComponentNames.BoundingBox,
       );
@@ -63,18 +70,45 @@ export class Collision extends System {
         dimension = boundingBox.getOutscribedBoxDims();
       }
 
-      this.quadTree.insert({
+      const { center } = boundingBox;
+      const topLeftBoundingBox = {
+        x: center.x - dimension.width / 2,
+        y: center.y - dimension.height / 2,
+      };
+      const bottomRightBoundingBox = {
+        x: center.x + dimension.width / 2,
+        y: center.y + dimension.height / 2,
+      };
+
+      topLeft.x = Math.min(topLeftBoundingBox.x, topLeft.x);
+      topLeft.y = Math.min(topLeftBoundingBox.y, topLeft.y);
+      bottomRight.x = Math.max(bottomRightBoundingBox.x, bottomRight.x);
+      bottomRight.y = Math.min(bottomRightBoundingBox.y, bottomRight.y);
+
+      quadTreeInsertions.push({
         id: entity.id,
         dimension,
-        center: boundingBox.center,
+        center,
       });
     });
 
-    // find colliding entities and perform collisions
-    const collidingEntities = this.getCollidingEntities(
-      entitiesToAddToQuadtree,
-      game,
+    // set bounds first
+    if (entities.length > 0) {
+      this.quadTree.setTopLeft(topLeft);
+      this.quadTree.setDimension({
+        width: bottomRight.x - topLeft.x,
+        height: bottomRight.y - topLeft.y,
+      });
+    }
+
+    // then, begin insertions
+    quadTreeInsertions.forEach((boxedEntry: BoxedEntry) =>
+      this.quadTree.insert(boxedEntry),
     );
+  }
+
+  private findCollidingEntitiesAndCollide(entities: Entity[], game: Game) {
+    const collidingEntities = this.getCollidingEntities(entities, game);
 
     collidingEntities.forEach(([entityAId, entityBId]) => {
       const [entityA, entityB] = [entityAId, entityBId].map((id) =>
@@ -139,8 +173,8 @@ export class Collision extends System {
   private getCollidingEntities(
     collidableEntities: Entity[],
     game: Game,
-  ): [number, number][] {
-    const collidingEntityIds: [number, number][] = [];
+  ): [string, string][] {
+    const collidingEntityIds: [string, string][] = [];
 
     for (const entity of collidableEntities) {
       const boundingBox = entity.getComponent<BoundingBox>(
