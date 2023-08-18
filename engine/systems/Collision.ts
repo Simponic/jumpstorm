@@ -8,57 +8,48 @@ import {
   Forces,
 } from "../components";
 import { Game } from "../Game";
-import { PhysicsConstants } from "../config";
+import { Miscellaneous, PhysicsConstants } from "../config";
 import { Entity } from "../entities";
 import type { Coord2D, Dimension2D, Velocity2D } from "../interfaces";
-import { QuadTree, BoxedEntry } from "../structures";
+import { BoxedEntry, RefreshingCollisionFinderBehavior } from "../structures";
 
 export class Collision extends System {
   private static readonly COLLIDABLE_COMPONENT_NAMES = [
     ComponentNames.Collide,
     ComponentNames.TopCollidable,
   ];
-  private static readonly QUADTREE_MAX_LEVELS = 10;
-  private static readonly QUADTREE_SPLIT_THRESHOLD = 10;
 
-  private quadTree: QuadTree;
+  private collisionFinder: RefreshingCollisionFinderBehavior;
 
-  constructor(screenDimensions: Dimension2D) {
+  constructor(refreshingCollisionFinder: RefreshingCollisionFinderBehavior) {
     super(SystemNames.Collision);
 
-    this.quadTree = new QuadTree(
-      { x: 0, y: 0 },
-      screenDimensions,
-      Collision.QUADTREE_MAX_LEVELS,
-      Collision.QUADTREE_SPLIT_THRESHOLD,
-    );
+    this.collisionFinder = refreshingCollisionFinder;
   }
 
   public update(_dt: number, game: Game) {
-    // rebuild the quadtree
-    this.quadTree.clear();
+    this.collisionFinder.clear();
 
-    const entitiesToAddToQuadtree: Entity[] = [];
+    const entitiesToAddToCollisionFinder: Entity[] = [];
 
     Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
       game.forEachEntityWithComponent(componentName, (entity) => {
         if (!entity.hasComponent(ComponentNames.BoundingBox)) {
           return;
         }
-        entitiesToAddToQuadtree.push(entity);
+        entitiesToAddToCollisionFinder.push(entity);
       }),
     );
 
-    this.insertEntitiesInQuadTreeAndUpdateBounds(entitiesToAddToQuadtree);
-
-    this.findCollidingEntitiesAndCollide(entitiesToAddToQuadtree, game);
+    this.insertEntitiesAndUpdateBounds(entitiesToAddToCollisionFinder);
+    this.findCollidingEntitiesAndCollide(entitiesToAddToCollisionFinder, game);
   }
 
-  private insertEntitiesInQuadTreeAndUpdateBounds(entities: Entity[]) {
+  private insertEntitiesAndUpdateBounds(entities: Entity[]) {
+    const collisionFinderInsertions: BoxedEntry[] = [];
+
     const topLeft: Coord2D = { x: Infinity, y: Infinity };
     const bottomRight: Coord2D = { x: -Infinity, y: -Infinity };
-
-    const quadTreeInsertions: BoxedEntry[] = [];
 
     entities.forEach((entity) => {
       const boundingBox = entity.getComponent<BoundingBox>(
@@ -71,21 +62,15 @@ export class Collision extends System {
       }
 
       const { center } = boundingBox;
-      const topLeftBoundingBox = {
-        x: center.x - dimension.width / 2,
-        y: center.y - dimension.height / 2,
-      };
-      const bottomRightBoundingBox = {
-        x: center.x + dimension.width / 2,
-        y: center.y + dimension.height / 2,
-      };
+      const topLeftBoundingBox = boundingBox.getTopLeft();
+      const bottomRightBoundingBox = boundingBox.getBottomRight();
 
       topLeft.x = Math.min(topLeftBoundingBox.x, topLeft.x);
       topLeft.y = Math.min(topLeftBoundingBox.y, topLeft.y);
       bottomRight.x = Math.max(bottomRightBoundingBox.x, bottomRight.x);
-      bottomRight.y = Math.min(bottomRightBoundingBox.y, bottomRight.y);
+      bottomRight.y = Math.max(bottomRightBoundingBox.y, bottomRight.y);
 
-      quadTreeInsertions.push({
+      collisionFinderInsertions.push({
         id: entity.id,
         dimension,
         center,
@@ -94,16 +79,16 @@ export class Collision extends System {
 
     // set bounds first
     if (entities.length > 0) {
-      this.quadTree.setTopLeft(topLeft);
-      this.quadTree.setDimension({
+      this.collisionFinder.setTopLeft(topLeft);
+      this.collisionFinder.setDimension({
         width: bottomRight.x - topLeft.x,
         height: bottomRight.y - topLeft.y,
       });
     }
 
     // then, begin insertions
-    quadTreeInsertions.forEach((boxedEntry: BoxedEntry) =>
-      this.quadTree.insert(boxedEntry),
+    collisionFinderInsertions.forEach((boxedEntry: BoxedEntry) =>
+      this.collisionFinder.insert(boxedEntry),
     );
   }
 
@@ -181,15 +166,13 @@ export class Collision extends System {
         ComponentNames.BoundingBox,
       );
 
-      const neighborIds = this.quadTree
-        .getNeighborIds({
-          id: entity.id,
-          dimension: boundingBox.dimension,
-          center: boundingBox.center,
-        })
-        .filter((neighborId) => neighborId != entity.id);
+      const neighborIds = this.collisionFinder.getNeighborIds({
+        id: entity.id,
+        dimension: boundingBox.dimension,
+        center: boundingBox.center,
+      });
 
-      neighborIds.forEach((neighborId) => {
+      for (const neighborId of neighborIds) {
         const neighbor = game.getEntity(neighborId);
         if (!neighbor) return;
 
@@ -200,7 +183,7 @@ export class Collision extends System {
         if (boundingBox.isCollidingWith(neighborBoundingBox)) {
           collidingEntityIds.push([entity.id, neighborId]);
         }
-      });
+      }
     }
 
     return collidingEntityIds;

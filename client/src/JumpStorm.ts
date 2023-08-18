@@ -1,5 +1,7 @@
 import { Floor, Player } from "@engine/entities";
 import { Game } from "@engine/Game";
+import { Grid } from "@engine/structures";
+import { Miscellaneous } from "@engine/config";
 import {
   WallBounds,
   FacingDirection,
@@ -65,11 +67,16 @@ export class JumpStorm {
       socket,
     );
 
+    const grid = new Grid(
+      { width: Miscellaneous.WIDTH, height: Miscellaneous.HEIGHT },
+      { width: 30, height: 30 },
+    );
+
     [
       this.createInputSystem(),
       new FacingDirection(),
       new Physics(),
-      new Collision(),
+      new Collision(grid),
       new WallBounds(ctx.canvas.width),
       new NetworkUpdate(
         clientSocketMessageQueueProvider,

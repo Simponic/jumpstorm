@@ -1,10 +1,5 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
-
-export interface BoxedEntry {
-  id: string;
-  dimension: Dimension2D;
-  center: Coord2D;
-}
+import type { BoxedEntry, RefreshingCollisionFinderBehavior } from ".";
 
 enum Quadrant {
   I,
@@ -13,7 +8,14 @@ enum Quadrant {
   IV,
 }
 
-export class QuadTree {
+/*
+  unused due to performance problems. here anyways, in case it _really_ is necessary at some point
+  (and to justify the amount of time i spent here).
+*/
+export class QuadTree implements RefreshingCollisionFinderBehavior {
+  private static readonly QUADTREE_MAX_LEVELS = 3;
+  private static readonly QUADTREE_SPLIT_THRESHOLD = 2000;
+
   private maxLevels: number;
   private splitThreshold: number;
   private level: number;
@@ -24,18 +26,18 @@ export class QuadTree {
   private objects: BoxedEntry[];
 
   constructor(
-    topLeft: Coord2D,
+    topLeft: Coord2D = { x: 0, y: 0 },
     dimension: Dimension2D,
-    maxLevels: number,
-    splitThreshold: number,
-    level?: number,
+    maxLevels: number = QuadTree.QUADTREE_MAX_LEVELS,
+    splitThreshold: number = QuadTree.QUADTREE_SPLIT_THRESHOLD,
+    level: number = 0,
   ) {
     this.children = new Map<Quadrant, QuadTree>();
     this.objects = [];
 
     this.maxLevels = maxLevels;
     this.splitThreshold = splitThreshold;
-    this.level = level ?? 0;
+    this.level = level;
 
     this.topLeft = topLeft;
     this.dimension = dimension;
@@ -45,7 +47,7 @@ export class QuadTree {
     if (this.hasChildren()) {
       this.getQuadrants(boxedEntry).forEach((quadrant) => {
         const quadrantBox = this.children.get(quadrant);
-        quadrantBox?.insert(boxedEntry);
+        quadrantBox!.insert(boxedEntry);
       });
       return;
     }
@@ -73,15 +75,16 @@ export class QuadTree {
   }
 
   public getNeighborIds(boxedEntry: BoxedEntry): string[] {
-    const neighbors: string[] = this.objects.map(({ id }) => id);
+    const neighbors = new Set<string>(
+      this.objects.map(({ id }) => id).filter((id) => id != boxedEntry.id),
+    );
 
     if (this.hasChildren()) {
       this.getQuadrants(boxedEntry).forEach((quadrant) => {
         const quadrantBox = this.children.get(quadrant);
-
         quadrantBox
           ?.getNeighborIds(boxedEntry)
-          .forEach((id) => neighbors.push(id));
+          .forEach((id) => neighbors.add(id));
       });
     }
 
@@ -158,9 +161,9 @@ export class QuadTree {
 
   private realignObjects(): void {
     this.objects.forEach((boxedEntry) => {
-      this.getQuadrants(boxedEntry).forEach((direction) => {
-        const quadrant = this.children.get(direction);
-        quadrant?.insert(boxedEntry);
+      this.getQuadrants(boxedEntry).forEach((quadrant) => {
+        const quadrantBox = this.children.get(quadrant);
+        quadrantBox!.insert(boxedEntry);
       });
     });
 

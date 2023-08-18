@@ -23,7 +23,10 @@ export class Floor extends Entity {
 
     this.addComponent(
       new BoundingBox(
-        { x: 300, y: 300 },
+        {
+          x: 300,
+          y: 300,
+        },
         { width, height: Floor.spriteSpec.height },
       ),
     );

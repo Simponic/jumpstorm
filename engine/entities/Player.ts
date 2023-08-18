@@ -18,7 +18,7 @@ import { Direction } from "../interfaces";
 
 export class Player extends Entity {
   private static MASS: number = 10;
-  private static MOI: number = 1000;
+  private static MOI: number = 100;
 
   private static spriteSpec: SpriteSpec = SPRITE_SPECS.get(
     Sprites.COFFEE,
@@ -29,7 +29,10 @@ export class Player extends Entity {
 
     this.addComponent(
       new BoundingBox(
-        { x: 300, y: 100 },
+        {
+          x: 300,
+          y: 100,
+        },
         { width: Player.spriteSpec.width, height: Player.spriteSpec.height },
         0,
       ),

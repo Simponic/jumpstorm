@@ -17,6 +17,25 @@ export class BoundingBox extends Component {
 
   // https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
   public isCollidingWith(box: BoundingBox): boolean {
+    if (this.rotation == 0 && box.rotation == 0) {
+      const thisTopLeft = this.getTopLeft();
+      const thisBottomRight = this.getBottomRight();
+
+      const thatTopLeft = box.getTopLeft();
+      const thatBottomRight = box.getBottomRight();
+
+      if (
+        thisBottomRight.x <= thatTopLeft.x ||
+        thisTopLeft.x >= thatBottomRight.x ||
+        thisBottomRight.y <= thatTopLeft.y ||
+        thisTopLeft.y >= thatBottomRight.y
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
     const boxes = [this.getVertices(), box.getVertices()];
     for (const poly of boxes) {
       for (let i = 0; i < poly.length; i++) {
@@ -81,6 +100,20 @@ export class BoundingBox extends Component {
     return {
       width: Math.abs(height * Math.cos(rads) + width * Math.sin(rads)),
       height: Math.abs(width * Math.cos(rads) + height * Math.sin(rads)),
+    };
+  }
+
+  public getTopLeft(): Coord2D {
+    return {
+      x: this.center.x - this.dimension.width / 2,
+      y: this.center.y - this.dimension.height / 2,
+    };
+  }
+
+  public getBottomRight(): Coord2D {
+    return {
+      x: this.center.x + this.dimension.width / 2,
+      y: this.center.y + this.dimension.height / 2,
     };
   }
 }
