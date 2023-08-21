@@ -1,7 +1,5 @@
-import { Floor, Player } from "@engine/entities";
 import { Game } from "@engine/Game";
 import { Grid } from "@engine/structures";
-import { Miscellaneous } from "@engine/config";
 import {
   WallBounds,
   FacingDirection,
@@ -61,16 +59,14 @@ export class JumpStorm {
     this.game = new Game();
 
     const socket = new WebSocket("ws://localhost:8080");
+    setInterval(() => socket.send(JSON.stringify({ x: 1 })), 1_000);
     const clientSocketMessageQueueProvider =
       new ClientSocketMessageQueueProvider(socket);
     const clientSocketMessagePublisher = new ClientSocketMessagePublisher(
       socket
     );
 
-    const grid = new Grid(
-      { width: Miscellaneous.WIDTH, height: Miscellaneous.HEIGHT },
-      { width: 30, height: 30 }
-    );
+    const grid = new Grid();
 
     [
       this.createInputSystem(),
@@ -84,10 +80,6 @@ export class JumpStorm {
       ),
       new Render(ctx),
     ].forEach((system) => this.game.addSystem(system));
-
-    [new Floor(160), new Player()].forEach((entity) =>
-      this.game.addEntity(entity)
-    );
   }
 
   public play() {

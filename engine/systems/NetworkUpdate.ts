@@ -18,7 +18,7 @@ export class NetworkUpdate extends System {
 
   constructor(
     queueProvider: MessageQueueProvider,
-    publisher: MessagePublisher,
+    publisher: MessagePublisher
   ) {
     super(SystemNames.NetworkUpdate);
 
@@ -28,15 +28,16 @@ export class NetworkUpdate extends System {
 
   public update(_dt: number, game: Game) {
     const messages = this.queueProvider.getNewMessages();
+    if (messages.length) console.log(messages);
     this.queueProvider.clearMessages();
 
     game.forEachEntityWithComponent(
       ComponentNames.NetworkUpdateable,
       (entity) => {
         const networkUpdateComponent = entity.getComponent<NetworkUpdateable>(
-          ComponentNames.NetworkUpdateable,
+          ComponentNames.NetworkUpdateable
         );
-      },
+      }
     );
   }
 }

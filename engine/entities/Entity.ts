@@ -4,8 +4,8 @@ export abstract class Entity {
   public readonly id: string;
   public readonly components: Map<string, Component>;
 
-  constructor() {
-    this.id = crypto.randomUUID();
+  constructor(id: string = crypto.randomUUID()) {
+    this.id = id;
     this.components = new Map();
   }
 

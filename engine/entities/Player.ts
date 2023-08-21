@@ -21,7 +21,7 @@ export class Player extends Entity {
   private static MOI: number = 100;
 
   private static spriteSpec: SpriteSpec = SPRITE_SPECS.get(
-    Sprites.COFFEE,
+    Sprites.COFFEE
   ) as SpriteSpec;
 
   constructor() {
@@ -34,12 +34,12 @@ export class Player extends Entity {
           y: 100,
         },
         { width: Player.spriteSpec.width, height: Player.spriteSpec.height },
-        0,
-      ),
+        0
+      )
     );
 
     this.addComponent(
-      new Velocity({ dCartesian: { dx: 0, dy: 0 }, dTheta: 0 }),
+      new Velocity({ dCartesian: { dx: 0, dy: 0 }, dTheta: 0 })
     );
 
     this.addComponent(new Mass(Player.MASS));
@@ -64,8 +64,8 @@ export class Player extends Entity {
           { x: 0, y: 0 },
           { width: Player.spriteSpec.width, height: Player.spriteSpec.height },
           Player.spriteSpec.msPerFrame,
-          Player.spriteSpec.frames,
-        ),
+          Player.spriteSpec.frames
+        )
     );
 
     this.addComponent(new FacingDirection(leftSprite, rightSprite));

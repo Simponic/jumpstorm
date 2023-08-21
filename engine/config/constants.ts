@@ -4,25 +4,28 @@ export namespace KeyConstants {
   export const KeyActions: Record<string, Action> = {
     a: Action.MOVE_LEFT,
     ArrowLeft: Action.MOVE_LEFT,
+
     d: Action.MOVE_RIGHT,
     ArrowRight: Action.MOVE_RIGHT,
+
     w: Action.JUMP,
     ArrowUp: Action.JUMP,
   };
 
+  // value -> [key] from KeyActions
   export const ActionKeys: Map<Action, string[]> = Object.keys(
     KeyActions
   ).reduce((acc: Map<Action, string[]>, key) => {
     const action = KeyActions[key];
 
     if (acc.has(action)) {
-      acc.get(action)?.push(key);
+      acc.get(action)!.push(key);
       return acc;
     }
 
     acc.set(action, [key]);
     return acc;
-  }, new Map<Action, string[]>());
+  }, new Map());
 }
 
 export namespace PhysicsConstants {
@@ -37,6 +40,8 @@ export namespace Miscellaneous {
   export const WIDTH = 600;
   export const HEIGHT = 800;
 
-  export const DEFAULT_GRID_WIDTH = 40;
-  export const DEFAULT_GRID_HEIGHT = 40;
+  export const DEFAULT_GRID_WIDTH = 30;
+  export const DEFAULT_GRID_HEIGHT = 30;
+
+  export const SERVER_TICK_RATE = 5 / 100;
 }
