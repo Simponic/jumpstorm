@@ -1,5 +1,6 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
 import type { BoxedEntry, RefreshingCollisionFinderBehavior } from ".";
+import { Miscellaneous } from "../config/constants";
 
 export class Grid implements RefreshingCollisionFinderBehavior {
   private cellEntities: Map<number, string[]>;
@@ -9,8 +10,14 @@ export class Grid implements RefreshingCollisionFinderBehavior {
   private topLeft: Coord2D;
 
   constructor(
-    gridDimension: Dimension2D,
-    cellDimension: Dimension2D,
+    gridDimension: Dimension2D = {
+      width: Miscellaneous.WIDTH,
+      height: Miscellaneous.HEIGHT,
+    },
+    cellDimension: Dimension2D = {
+      width: Miscellaneous.DEFAULT_GRID_WIDTH,
+      height: Miscellaneous.DEFAULT_GRID_HEIGHT,
+    },
     topLeft = { x: 0, y: 0 }
   ) {
     this.gridDimension = gridDimension;

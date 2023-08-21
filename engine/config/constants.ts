@@ -11,7 +11,7 @@ export namespace KeyConstants {
   };
 
   export const ActionKeys: Map<Action, string[]> = Object.keys(
-    KeyActions,
+    KeyActions
   ).reduce((acc: Map<Action, string[]>, key) => {
     const action = KeyActions[key];
 
@@ -36,4 +36,7 @@ export namespace PhysicsConstants {
 export namespace Miscellaneous {
   export const WIDTH = 600;
   export const HEIGHT = 800;
+
+  export const DEFAULT_GRID_WIDTH = 40;
+  export const DEFAULT_GRID_HEIGHT = 40;
 }

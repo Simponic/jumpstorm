@@ -1,21 +1,24 @@
-import { Game } from "../../engine/Game";
-import { Floor, Player } from "../../engine/entities";
+import { Game } from "@engine/Game";
+import { Floor, Player } from "@engine/entities";
 import {
   WallBounds,
   Physics,
   Collision,
   MessageQueueProvider,
   MessagePublisher,
-} from "../../engine/systems";
-import { Miscellaneous } from "../../engine/config";
+} from "@engine/systems";
+import { Grid } from "@engine/structures";
+import { Miscellaneous } from "@engine/config";
 
 const TICK_RATE = 60 / 1000;
 
 const game = new Game();
 
-[new Physics(), new Collision(), new WallBounds(Miscellaneous.WIDTH)].forEach(
-  (system) => game.addSystem(system),
-);
+[
+  new Physics(),
+  new Collision(new Grid()),
+  new WallBounds(Miscellaneous.WIDTH),
+].forEach((system) => game.addSystem(system));
 
 [new Floor(160), new Player()].forEach((entity) => game.addEntity(entity));
 
@@ -27,7 +30,7 @@ setInterval(() => {
 
 const server = Bun.serve({
   port: 8080,
-  fetch(req, server) {
+  fetch: async (req, server): Promise<string> => {
     const sessionId = Math.floor(Math.random() * 1e10).toString();
 
     server.upgrade(req, {
@@ -35,6 +38,8 @@ const server = Bun.serve({
         "Set-Cookie": `SessionId=${sessionId}`,
       },
     });
+
+    return "200 OK";
   },
   websocket: {
     open(ws) {},

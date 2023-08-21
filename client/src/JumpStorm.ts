@@ -64,12 +64,12 @@ export class JumpStorm {
     const clientSocketMessageQueueProvider =
       new ClientSocketMessageQueueProvider(socket);
     const clientSocketMessagePublisher = new ClientSocketMessagePublisher(
-      socket,
+      socket
     );
 
     const grid = new Grid(
       { width: Miscellaneous.WIDTH, height: Miscellaneous.HEIGHT },
-      { width: 30, height: 30 },
+      { width: 30, height: 30 }
     );
 
     [
@@ -80,13 +80,13 @@ export class JumpStorm {
       new WallBounds(ctx.canvas.width),
       new NetworkUpdate(
         clientSocketMessageQueueProvider,
-        clientSocketMessagePublisher,
+        clientSocketMessagePublisher
       ),
       new Render(ctx),
     ].forEach((system) => this.game.addSystem(system));
 
     [new Floor(160), new Player()].forEach((entity) =>
-      this.game.addEntity(entity),
+      this.game.addEntity(entity)
     );
   }
 
