@@ -1,5 +1,5 @@
 import type { Coord2D, Dimension2D } from "../interfaces";
-import type { RefreshingCollisionFinderBehavior } from ".";
+import type { BoxedEntry, RefreshingCollisionFinderBehavior } from ".";
 
 export class Grid implements RefreshingCollisionFinderBehavior {
   private cellEntities: Map<number, string[]>;
@@ -11,7 +11,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
   constructor(
     gridDimension: Dimension2D,
     cellDimension: Dimension2D,
-    topLeft = { x: 0, y: 0 },
+    topLeft = { x: 0, y: 0 }
   ) {
     this.gridDimension = gridDimension;
     this.cellDimension = cellDimension;
@@ -25,7 +25,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
       if (!this.cellEntities.has(gridIdx)) {
         this.cellEntities.set(gridIdx, []);
       }
-      this.cellEntities.get(gridIdx).push(boxedEntry.id);
+      this.cellEntities.get(gridIdx)!.push(boxedEntry.id);
     });
   }
 
@@ -33,7 +33,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
     const neighborIds: Set<string> = new Set();
     this.getOverlappingCells(boxedEntry).forEach((gridIdx) => {
       if (this.cellEntities.has(gridIdx)) {
-        this.cellEntities.get(gridIdx).forEach((id) => neighborIds.add(id));
+        this.cellEntities.get(gridIdx)!.forEach((id) => neighborIds.add(id));
       }
     });
     return neighborIds;
@@ -58,10 +58,10 @@ export class Grid implements RefreshingCollisionFinderBehavior {
   private getOverlappingCells(boxedEntry: BoxedEntry): number[] {
     const { center, dimension } = boxedEntry;
     const yBoxes = Math.ceil(
-      this.gridDimension.height / this.cellDimension.height,
+      this.gridDimension.height / this.cellDimension.height
     );
     const xBoxes = Math.ceil(
-      this.gridDimension.width / this.cellDimension.width,
+      this.gridDimension.width / this.cellDimension.width
     );
 
     const translated: Coord2D = {
@@ -71,18 +71,18 @@ export class Grid implements RefreshingCollisionFinderBehavior {
 
     const topLeftBox = {
       x: Math.floor(
-        (translated.x - dimension.width / 2) / this.cellDimension.width,
+        (translated.x - dimension.width / 2) / this.cellDimension.width
       ),
       y: Math.floor(
-        (translated.y - dimension.height / 2) / this.cellDimension.height,
+        (translated.y - dimension.height / 2) / this.cellDimension.height
       ),
     };
     const bottomRightBox = {
       x: Math.floor(
-        (translated.x + dimension.width / 2) / this.cellDimension.width,
+        (translated.x + dimension.width / 2) / this.cellDimension.width
       ),
       y: Math.floor(
-        (translated.y + dimension.height / 2) / this.cellDimension.height,
+        (translated.y + dimension.height / 2) / this.cellDimension.height
       ),
     };
 

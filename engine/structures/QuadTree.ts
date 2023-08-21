@@ -30,7 +30,7 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
     dimension: Dimension2D,
     maxLevels: number = QuadTree.QUADTREE_MAX_LEVELS,
     splitThreshold: number = QuadTree.QUADTREE_SPLIT_THRESHOLD,
-    level: number = 0,
+    level: number = 0
   ) {
     this.children = new Map<Quadrant, QuadTree>();
     this.objects = [];
@@ -74,9 +74,9 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
     }
   }
 
-  public getNeighborIds(boxedEntry: BoxedEntry): string[] {
+  public getNeighborIds(boxedEntry: BoxedEntry): Set<string> {
     const neighbors = new Set<string>(
-      this.objects.map(({ id }) => id).filter((id) => id != boxedEntry.id),
+      this.objects.map(({ id }) => id).filter((id) => id != boxedEntry.id)
     );
 
     if (this.hasChildren()) {
@@ -104,7 +104,7 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
           Quadrant.IV,
           { x: this.topLeft.x + halfWidth, y: this.topLeft.y + halfHeight },
         ],
-      ] as [[Quadrant, Coord2D]]
+      ] as [Quadrant, Coord2D][]
     ).forEach(([quadrant, pos]) => {
       this.children.set(
         quadrant,
@@ -113,8 +113,8 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
           { width: halfWidth, height: halfHeight },
           this.maxLevels,
           this.splitThreshold,
-          this.level + 1,
-        ),
+          this.level + 1
+        )
       );
     });
   }
@@ -143,18 +143,18 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
           Quadrant.IV,
           (x: number, y: number) => x >= treeCenter.x && y >= treeCenter.y,
         ],
-      ] as [[Quadrant, (x: number, y: number) => boolean]]
+      ] as [Quadrant, (x: number, y: number) => boolean][]
     )
       .filter(
         ([_quadrant, condition]) =>
           condition(
             boxedEntry.center.x + boxedEntry.dimension.width / 2,
-            boxedEntry.center.y + boxedEntry.dimension.height / 2,
+            boxedEntry.center.y + boxedEntry.dimension.height / 2
           ) ||
           condition(
             boxedEntry.center.x - boxedEntry.dimension.width / 2,
-            boxedEntry.center.y - boxedEntry.dimension.height / 2,
-          ),
+            boxedEntry.center.y - boxedEntry.dimension.height / 2
+          )
       )
       .map(([quadrant]) => quadrant);
   }
