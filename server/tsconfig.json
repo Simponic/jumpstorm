@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig.engine.json",
   "compilerOptions": {
     // add Bun type definitions
     "types": ["bun-types"],
@@ -21,18 +22,6 @@
     // best practices
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-
-    // engine path
-    "paths": {
-      "@engine/*": ["../engine/*"],
-      "@engine/components": ["../engine/components"],
-      "@engine/config": ["../engine/config"],
-      "@engine/entities": ["../engine/entities"],
-      "@engine/interfaces": ["../engine/interfaces"],
-      "@engine/structures": ["../engine/structures"],
-      "@engine/systems": ["../engine/systems"],
-      "@engine/utils": ["../engine/utils"],
-    }
+    "skipLibCheck": true
   }
 }

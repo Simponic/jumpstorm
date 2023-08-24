@@ -1,7 +1,7 @@
 import { IMAGES, SPRITE_SPECS, Sprites, type SpriteSpec } from "../config";
 import { BoundingBox, Sprite } from "../components";
 import { TopCollidable } from "../components/TopCollidable";
-import { Entity } from "../entities";
+import { Entity, EntityNames } from "../entities";
 
 export class Floor extends Entity {
   private static spriteSpec: SpriteSpec = SPRITE_SPECS.get(
@@ -9,7 +9,7 @@ export class Floor extends Entity {
   ) as SpriteSpec;
 
   constructor(width: number) {
-    super();
+    super(EntityNames.Floor);
 
     this.addComponent(
       new Sprite(

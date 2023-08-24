@@ -60,7 +60,7 @@ export class Game {
     return this.systems.get(name);
   }
 
-  public doGameLoop = (timeStamp: number) => {
+  public doGameLoop(timeStamp: number) {
     if (!this.running) {
       return;
     }
@@ -86,5 +86,5 @@ export class Game {
     this.systemOrder.forEach((systemName) => {
       this.systems.get(systemName)?.update(dt, this);
     });
-  };
+  }
 }

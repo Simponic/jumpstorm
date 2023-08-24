@@ -12,12 +12,14 @@ import { Action } from "../interfaces";
 import { System, SystemNames } from ".";
 
 export class Input extends System {
+  public clientId: string;
   private keys: Set<string>;
   private actionTimeStamps: Map<Action, number>;
 
-  constructor() {
+  constructor(clientId: string) {
     super(SystemNames.Input);
 
+    this.clientId = clientId;
     this.keys = new Set<string>();
     this.actionTimeStamps = new Map<Action, number>();
   }
@@ -42,6 +44,7 @@ export class Input extends System {
       const controlComponent = entity.getComponent<Control>(
         ComponentNames.Control,
       );
+      if (controlComponent.controllableBy != this.clientId) return;
 
       if (this.hasSomeKey(KeyConstants.ActionKeys.get(Action.MOVE_RIGHT))) {
         controlComponent.controlVelocityComponent.velocity.dCartesian.dx +=

@@ -1,10 +1,13 @@
+import { EntityNames, Player } from ".";
 import type { Component } from "../components";
 
 export abstract class Entity {
-  public readonly id: string;
-  public readonly components: Map<string, Component>;
+  public id: string;
+  public components: Map<string, Component>;
+  public name: string;
 
-  constructor(id: string = crypto.randomUUID()) {
+  constructor(name: string, id: string = crypto.randomUUID()) {
+    this.name = name;
     this.id = id;
     this.components = new Map();
   }
@@ -26,5 +29,14 @@ export abstract class Entity {
 
   public hasComponent(name: string): boolean {
     return this.components.has(name);
+  }
+
+  static from(entityName: string, args: any): Entity {
+    switch (entityName) {
+      case EntityNames.Player:
+        return new Player(args.playerId);
+      default:
+        throw new Error(".from() Entity type not implemented: " + entityName);
+    }
   }
 }
