@@ -1,11 +1,11 @@
-import { System, SystemNames } from ".";
-import { Game } from "../Game";
-import { ComponentNames, NetworkUpdateable } from "../components";
+import { System, SystemNames } from '.';
+import { Game } from '../Game';
+import { ComponentNames, NetworkUpdateable } from '../components';
 import {
   type MessageQueueProvider,
   type MessagePublisher,
-  type MessageProcessor,
-} from "../network";
+  type MessageProcessor
+} from '../network';
 
 export class NetworkUpdate extends System {
   private queueProvider: MessageQueueProvider;
@@ -15,7 +15,7 @@ export class NetworkUpdate extends System {
   constructor(
     queueProvider: MessageQueueProvider,
     publisher: MessagePublisher,
-    messageProcessor: MessageProcessor,
+    messageProcessor: MessageProcessor
   ) {
     super(SystemNames.NetworkUpdate);
 
@@ -34,9 +34,9 @@ export class NetworkUpdate extends System {
       ComponentNames.NetworkUpdateable,
       (entity) => {
         const networkUpdateComponent = entity.getComponent<NetworkUpdateable>(
-          ComponentNames.NetworkUpdateable,
+          ComponentNames.NetworkUpdateable
         );
-      },
+      }
     );
 
     this.publisher.publish();

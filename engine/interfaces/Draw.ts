@@ -1,4 +1,4 @@
-import type { Coord2D, Dimension2D } from "./";
+import type { Coord2D, Dimension2D } from './';
 
 export interface DrawArgs {
   center: Coord2D;

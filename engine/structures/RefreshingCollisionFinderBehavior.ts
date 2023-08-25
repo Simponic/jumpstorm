@@ -1,4 +1,4 @@
-import type { Coord2D, Dimension2D } from "../interfaces";
+import type { Coord2D, Dimension2D } from '../interfaces';
 
 export interface BoxedEntry {
   id: string;
@@ -7,8 +7,8 @@ export interface BoxedEntry {
 }
 
 export interface RefreshingCollisionFinderBehavior {
-  public clear(): void;
-  public insert(boxedEntry: BoxedEntry): void;
-  public getNeighborIds(boxedEntry: BoxedEntry): Set<string>;
-  public setTopLeft(topLeft: Coord2d): void;
+  clear(): void;
+  insert(boxedEntry: BoxedEntry): void;
+  getNeighborIds(boxedEntry: BoxedEntry): Set<string>;
+  setTopLeft(topLeft: Coord2D): void;
 }

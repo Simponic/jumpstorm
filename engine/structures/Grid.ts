@@ -1,6 +1,6 @@
-import type { Coord2D, Dimension2D } from "../interfaces";
-import type { BoxedEntry, RefreshingCollisionFinderBehavior } from ".";
-import { Miscellaneous } from "../config/constants";
+import type { Coord2D, Dimension2D } from '../interfaces';
+import type { BoxedEntry, RefreshingCollisionFinderBehavior } from '.';
+import { Miscellaneous } from '../config/constants';
 
 export class Grid implements RefreshingCollisionFinderBehavior {
   private cellEntities: Map<number, string[]>;
@@ -12,11 +12,11 @@ export class Grid implements RefreshingCollisionFinderBehavior {
   constructor(
     gridDimension: Dimension2D = {
       width: Miscellaneous.WIDTH,
-      height: Miscellaneous.HEIGHT,
+      height: Miscellaneous.HEIGHT
     },
     cellDimension: Dimension2D = {
       width: Miscellaneous.DEFAULT_GRID_WIDTH,
-      height: Miscellaneous.DEFAULT_GRID_HEIGHT,
+      height: Miscellaneous.DEFAULT_GRID_HEIGHT
     },
     topLeft = { x: 0, y: 0 }
   ) {
@@ -73,7 +73,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
 
     const translated: Coord2D = {
       y: center.y - this.topLeft.y,
-      x: center.x - this.topLeft.x,
+      x: center.x - this.topLeft.x
     };
 
     const topLeftBox = {
@@ -82,7 +82,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
       ),
       y: Math.floor(
         (translated.y - dimension.height / 2) / this.cellDimension.height
-      ),
+      )
     };
     const bottomRightBox = {
       x: Math.floor(
@@ -90,7 +90,7 @@ export class Grid implements RefreshingCollisionFinderBehavior {
       ),
       y: Math.floor(
         (translated.y + dimension.height / 2) / this.cellDimension.height
-      ),
+      )
     };
 
     const cells: number[] = [];

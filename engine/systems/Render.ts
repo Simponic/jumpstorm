@@ -1,7 +1,7 @@
-import { System, SystemNames } from ".";
-import { BoundingBox, ComponentNames, Sprite } from "../components";
-import { Game } from "../Game";
-import { clamp } from "../utils";
+import { System, SystemNames } from '.';
+import { BoundingBox, ComponentNames, Sprite } from '../components';
+import { Game } from '../Game';
+import { clamp } from '../utils';
 
 export class Render extends System {
   private ctx: CanvasRenderingContext2D;
@@ -19,7 +19,7 @@ export class Render extends System {
       sprite.update(dt);
 
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
       // don't render if we're outside the screen
@@ -27,12 +27,12 @@ export class Render extends System {
         clamp(
           boundingBox.center.y,
           -boundingBox.dimension.height / 2,
-          this.ctx.canvas.height + boundingBox.dimension.height / 2,
+          this.ctx.canvas.height + boundingBox.dimension.height / 2
         ) != boundingBox.center.y ||
         clamp(
           boundingBox.center.x,
           -boundingBox.dimension.width / 2,
-          this.ctx.canvas.width + boundingBox.dimension.width / 2,
+          this.ctx.canvas.width + boundingBox.dimension.width / 2
         ) != boundingBox.center.x
       ) {
         return;
@@ -41,7 +41,7 @@ export class Render extends System {
       const drawArgs = {
         center: boundingBox.center,
         dimension: boundingBox.dimension,
-        rotation: boundingBox.rotation,
+        rotation: boundingBox.rotation
       };
 
       sprite.draw(this.ctx, drawArgs);

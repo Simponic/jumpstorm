@@ -1,11 +1,11 @@
-import type { Coord2D, Dimension2D } from "../interfaces";
-import type { BoxedEntry, RefreshingCollisionFinderBehavior } from ".";
+import type { Coord2D, Dimension2D } from '../interfaces';
+import type { BoxedEntry, RefreshingCollisionFinderBehavior } from '.';
 
 enum Quadrant {
   I,
   II,
   III,
-  IV,
+  IV
 }
 
 /*
@@ -102,8 +102,8 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
         [Quadrant.III, { x: this.topLeft.x, y: this.topLeft.y + halfHeight }],
         [
           Quadrant.IV,
-          { x: this.topLeft.x + halfWidth, y: this.topLeft.y + halfHeight },
-        ],
+          { x: this.topLeft.x + halfWidth, y: this.topLeft.y + halfHeight }
+        ]
       ] as [Quadrant, Coord2D][]
     ).forEach(([quadrant, pos]) => {
       this.children.set(
@@ -122,27 +122,27 @@ export class QuadTree implements RefreshingCollisionFinderBehavior {
   private getQuadrants(boxedEntry: BoxedEntry): Quadrant[] {
     const treeCenter: Coord2D = {
       x: this.topLeft.x + this.dimension.width / 2,
-      y: this.topLeft.y + this.dimension.height / 2,
+      y: this.topLeft.y + this.dimension.height / 2
     };
 
     return (
       [
         [
           Quadrant.I,
-          (x: number, y: number) => x >= treeCenter.x && y < treeCenter.y,
+          (x: number, y: number) => x >= treeCenter.x && y < treeCenter.y
         ],
         [
           Quadrant.II,
-          (x: number, y: number) => x < treeCenter.x && y < treeCenter.y,
+          (x: number, y: number) => x < treeCenter.x && y < treeCenter.y
         ],
         [
           Quadrant.III,
-          (x: number, y: number) => x < treeCenter.x && y >= treeCenter.y,
+          (x: number, y: number) => x < treeCenter.x && y >= treeCenter.y
         ],
         [
           Quadrant.IV,
-          (x: number, y: number) => x >= treeCenter.x && y >= treeCenter.y,
-        ],
+          (x: number, y: number) => x >= treeCenter.x && y >= treeCenter.y
+        ]
       ] as [Quadrant, (x: number, y: number) => boolean][]
     )
       .filter(

@@ -1,4 +1,4 @@
-import { Component, ComponentNames, Sprite } from ".";
+import { Component, ComponentNames, Sprite } from '.';
 
 export class FacingDirection extends Component {
   public readonly facingLeftSprite: Sprite;

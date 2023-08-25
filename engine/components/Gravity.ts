@@ -1,7 +1,7 @@
-import { ComponentNames, Component } from ".";
+import { ComponentNames, Component } from '.';
 
 export class Gravity extends Component {
-  private static DEFAULT_TERMINAL_VELOCITY = 5;
+  private static DEFAULT_TERMINAL_VELOCITY = 4.5;
 
   public terminalVelocity: number;
 

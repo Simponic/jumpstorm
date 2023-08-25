@@ -1,5 +1,5 @@
-import { Component, ComponentNames } from ".";
-import type { Dimension2D, DrawArgs, Coord2D } from "../interfaces";
+import { Component, ComponentNames } from '.';
+import type { Dimension2D, DrawArgs, Coord2D } from '../interfaces';
 
 export class Sprite extends Component {
   private sheet: HTMLImageElement;
@@ -17,7 +17,7 @@ export class Sprite extends Component {
     spriteImgPos: Coord2D,
     spriteImgDimensions: Dimension2D,
     msPerFrame: number,
-    numFrames: number,
+    numFrames: number
   ) {
     super(ComponentNames.Sprite);
 
@@ -56,12 +56,12 @@ export class Sprite extends Component {
     ctx.drawImage(
       this.sheet,
       ...this.getSpriteArgs(),
-      ...this.getDrawArgs(drawArgs),
+      ...this.getDrawArgs(drawArgs)
     );
 
     if (tint) {
       ctx.globalAlpha = 0.5;
-      ctx.globalCompositeOperation = "source-atop";
+      ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = tint;
       ctx.fillRect(...this.getDrawArgs(drawArgs));
     }
@@ -74,19 +74,23 @@ export class Sprite extends Component {
       this.spriteImgPos.x + this.currentFrame * this.spriteImgDimensions.width,
       this.spriteImgPos.y,
       this.spriteImgDimensions.width,
-      this.spriteImgDimensions.height,
+      this.spriteImgDimensions.height
     ];
   }
 
   private getDrawArgs({
     center,
-    dimension,
+    dimension
   }: DrawArgs): [dx: number, dy: number, dw: number, dh: number] {
     return [
       center.x - dimension.width / 2,
       center.y - dimension.height / 2,
       dimension.width,
-      dimension.height,
+      dimension.height
     ];
+  }
+
+  public getSpriteDimensions() {
+    return this.spriteImgDimensions;
   }
 }

@@ -1,22 +1,22 @@
-import { SystemNames, System } from ".";
+import { SystemNames, System } from '.';
 import {
   Mass,
   BoundingBox,
   ComponentNames,
   Jump,
   Velocity,
-  Forces,
-} from "../components";
-import { Game } from "../Game";
-import { Miscellaneous, PhysicsConstants } from "../config";
-import { Entity } from "../entities";
-import type { Coord2D, Dimension2D, Velocity2D } from "../interfaces";
-import { BoxedEntry, RefreshingCollisionFinderBehavior } from "../structures";
+  Forces
+} from '../components';
+import { Game } from '../Game';
+import { Miscellaneous, PhysicsConstants } from '../config';
+import { Entity } from '../entities';
+import type { Coord2D, Dimension2D, Velocity2D } from '../interfaces';
+import { BoxedEntry, RefreshingCollisionFinderBehavior } from '../structures';
 
 export class Collision extends System {
   private static readonly COLLIDABLE_COMPONENT_NAMES = [
     ComponentNames.Collide,
-    ComponentNames.TopCollidable,
+    ComponentNames.TopCollidable
   ];
 
   private collisionFinder: RefreshingCollisionFinderBehavior;
@@ -38,7 +38,7 @@ export class Collision extends System {
           return;
         }
         entitiesToAddToCollisionFinder.push(entity);
-      }),
+      })
     );
 
     this.insertEntitiesAndUpdateBounds(entitiesToAddToCollisionFinder);
@@ -53,7 +53,7 @@ export class Collision extends System {
 
     entities.forEach((entity) => {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
       let dimension = { ...boundingBox.dimension };
@@ -73,7 +73,7 @@ export class Collision extends System {
       collisionFinderInsertions.push({
         id: entity.id,
         dimension,
-        center,
+        center
       });
     });
 
@@ -82,13 +82,13 @@ export class Collision extends System {
       this.collisionFinder.setTopLeft(topLeft);
       this.collisionFinder.setDimension({
         width: bottomRight.x - topLeft.x,
-        height: bottomRight.y - topLeft.y,
+        height: bottomRight.y - topLeft.y
       });
     }
 
     // then, begin insertions
     collisionFinderInsertions.forEach((boxedEntry: BoxedEntry) =>
-      this.collisionFinder.insert(boxedEntry),
+      this.collisionFinder.insert(boxedEntry)
     );
   }
 
@@ -97,7 +97,7 @@ export class Collision extends System {
 
     collidingEntities.forEach(([entityAId, entityBId]) => {
       const [entityA, entityB] = [entityAId, entityBId].map((id) =>
-        game.entities.get(id),
+        game.entities.get(id)
       );
       if (entityA && entityB) {
         this.performCollision(entityA, entityB);
@@ -107,13 +107,13 @@ export class Collision extends System {
 
   private performCollision(entityA: Entity, entityB: Entity) {
     const [entityABoundingBox, entityBBoundingBox] = [entityA, entityB].map(
-      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox),
+      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox)
     );
 
     let velocity: Velocity2D = { dCartesian: { dx: 0, dy: 0 }, dTheta: 0 };
     if (entityA.hasComponent(ComponentNames.Velocity)) {
       velocity = entityA.getComponent<Velocity>(
-        ComponentNames.Velocity,
+        ComponentNames.Velocity
       ).velocity;
     }
 
@@ -125,7 +125,7 @@ export class Collision extends System {
     ) {
       if (entityBBoundingBox.rotation != 0) {
         throw new Error(
-          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`,
+          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`
         );
       }
 
@@ -139,7 +139,7 @@ export class Collision extends System {
 
         entityA.getComponent<Forces>(ComponentNames.Forces).forces.push({
           fCartesian: { fy: F_n, fx: 0 },
-          torque: 0,
+          torque: 0
         });
       }
 
@@ -157,19 +157,19 @@ export class Collision extends System {
 
   private getCollidingEntities(
     collidableEntities: Entity[],
-    game: Game,
+    game: Game
   ): [string, string][] {
     const collidingEntityIds: [string, string][] = [];
 
     for (const entity of collidableEntities) {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
       const neighborIds = this.collisionFinder.getNeighborIds({
         id: entity.id,
         dimension: boundingBox.dimension,
-        center: boundingBox.center,
+        center: boundingBox.center
       });
 
       for (const neighborId of neighborIds) {
@@ -177,7 +177,7 @@ export class Collision extends System {
         if (!neighbor) return;
 
         const neighborBoundingBox = neighbor.getComponent<BoundingBox>(
-          ComponentNames.BoundingBox,
+          ComponentNames.BoundingBox
         );
 
         if (boundingBox.isCollidingWith(neighborBoundingBox)) {
@@ -192,11 +192,11 @@ export class Collision extends System {
   // ramblings: https://excalidraw.com/#json=z-xD86Za4a3duZuV2Oky0,KaGe-5iHJu1Si8inEo4GLQ
   private getDyToPushOutOfFloor(
     entityBoundingBox: BoundingBox,
-    floorBoundingBox: BoundingBox,
+    floorBoundingBox: BoundingBox
   ): number {
     const {
       dimension: { width, height },
-      center: { x },
+      center: { x }
     } = entityBoundingBox;
 
     const outScribedRectangle = entityBoundingBox.getOutscribedBoxDims();
@@ -215,7 +215,7 @@ export class Collision extends System {
     if (x >= floorBoundingBox.center.x) {
       boundedCollisionX = Math.min(
         floorBoundingBox.center.x + floorBoundingBox.dimension.width / 2,
-        clippedX,
+        clippedX
       );
       return (
         outScribedRectangle.height / 2 -
@@ -225,7 +225,7 @@ export class Collision extends System {
 
     boundedCollisionX = Math.max(
       floorBoundingBox.center.x - floorBoundingBox.dimension.width / 2,
-      clippedX,
+      clippedX
     );
 
     return (

@@ -1,4 +1,4 @@
-import { Action } from "../interfaces";
+import { Action } from '../interfaces';
 
 export namespace KeyConstants {
   export const KeyActions: Record<string, Action> = {
@@ -10,11 +10,13 @@ export namespace KeyConstants {
 
     w: Action.JUMP,
     ArrowUp: Action.JUMP,
+
+    ' ': Action.JUMP
   };
 
   // value -> [key] from KeyActions
   export const ActionKeys: Map<Action, string[]> = Object.keys(
-    KeyActions,
+    KeyActions
   ).reduce((acc: Map<Action, string[]>, key) => {
     const action = KeyActions[key];
 

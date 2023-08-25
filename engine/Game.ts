@@ -1,5 +1,5 @@
-import { Entity } from "./entities";
-import { System } from "./systems";
+import { Entity } from './entities';
+import { System } from './systems';
 
 export class Game {
   private systemOrder: string[];
@@ -39,7 +39,7 @@ export class Game {
 
   public forEachEntityWithComponent(
     componentName: string,
-    callback: (entity: Entity) => void,
+    callback: (entity: Entity) => void
   ) {
     this.componentEntities.get(componentName)?.forEach((entityId) => {
       const entity = this.getEntity(entityId);
@@ -75,12 +75,12 @@ export class Game {
         if (!this.componentEntities.has(component.name)) {
           this.componentEntities.set(
             component.name,
-            new Set<string>([entity.id]),
+            new Set<string>([entity.id])
           );
           return;
         }
         this.componentEntities.get(component.name)?.add(entity.id);
-      }),
+      })
     );
 
     this.systemOrder.forEach((systemName) => {

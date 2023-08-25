@@ -4,12 +4,12 @@ import {
   ComponentNames,
   Velocity,
   Mass,
-  Control,
-} from "../components";
-import { Game } from "../Game";
-import { KeyConstants, PhysicsConstants } from "../config";
-import { Action } from "../interfaces";
-import { System, SystemNames } from ".";
+  Control
+} from '../components';
+import { Game } from '../Game';
+import { KeyConstants, PhysicsConstants } from '../config';
+import { Action } from '../interfaces';
+import { System, SystemNames } from '.';
 
 export class Input extends System {
   public clientId: string;
@@ -42,7 +42,7 @@ export class Input extends System {
   public update(_dt: number, game: Game) {
     game.forEachEntityWithComponent(ComponentNames.Control, (entity) => {
       const controlComponent = entity.getComponent<Control>(
-        ComponentNames.Control,
+        ComponentNames.Control
       );
       if (controlComponent.controllableBy != this.clientId) return;
 
@@ -58,7 +58,7 @@ export class Input extends System {
 
       if (entity.hasComponent(ComponentNames.Jump)) {
         const velocity = entity.getComponent<Velocity>(
-          ComponentNames.Velocity,
+          ComponentNames.Velocity
         ).velocity;
         const jump = entity.getComponent<Jump>(ComponentNames.Jump);
 
@@ -78,9 +78,9 @@ export class Input extends System {
             entity.getComponent<Forces>(ComponentNames.Forces)?.forces.push({
               fCartesian: {
                 fy: mass * PhysicsConstants.PLAYER_JUMP_ACC,
-                fx: 0,
+                fx: 0
               },
-              torque: 0,
+              torque: 0
             });
           }
         }

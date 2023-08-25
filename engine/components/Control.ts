@@ -1,4 +1,4 @@
-import { Component, ComponentNames, Velocity } from ".";
+import { Component, ComponentNames, Velocity } from '.';
 
 export class Control extends Component {
   public controlVelocityComponent: Velocity;
@@ -6,7 +6,7 @@ export class Control extends Component {
 
   constructor(
     controllableBy: string,
-    controlVelocityComponent: Velocity = new Velocity(),
+    controlVelocityComponent: Velocity = new Velocity()
   ) {
     super(ComponentNames.Control);
 

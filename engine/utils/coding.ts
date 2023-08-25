@@ -1,8 +1,8 @@
 const replacer = (_key: any, value: any) => {
   if (value instanceof Map) {
     return {
-      dataType: "Map",
-      value: Array.from(value.entries()),
+      dataType: 'Map',
+      value: Array.from(value.entries())
     };
   } else {
     return value;
@@ -10,8 +10,8 @@ const replacer = (_key: any, value: any) => {
 };
 
 const reviver = (_key: any, value: any) => {
-  if (typeof value === "object" && value !== null) {
-    if (value.dataType === "Map") {
+  if (typeof value === 'object' && value !== null) {
+    if (value.dataType === 'Map') {
       return new Map(value.value);
     }
   }

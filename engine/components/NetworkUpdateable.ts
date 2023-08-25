@@ -1,4 +1,4 @@
-import { Component, ComponentNames } from ".";
+import { Component, ComponentNames } from '.';
 
 export class NetworkUpdateable extends Component {
   public isPublish: boolean;

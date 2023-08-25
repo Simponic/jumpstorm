@@ -1,4 +1,4 @@
-import type { Coord2D } from "../interfaces";
+import type { Coord2D } from '../interfaces';
 
 /**
  * ([[cos(θ), -sin(θ),])  ([x,)
@@ -10,6 +10,6 @@ export const rotateVector = (vector: Coord2D, theta: number): Coord2D => {
 
   return {
     x: vector.x * cos - vector.y * sin,
-    y: vector.x * sin + vector.y * cos,
+    y: vector.x * sin + vector.y * cos
   };
 };

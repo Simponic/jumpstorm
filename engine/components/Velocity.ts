@@ -1,12 +1,12 @@
-import type { Velocity2D } from "../interfaces";
-import { Component } from "./Component";
-import { ComponentNames } from ".";
+import type { Velocity2D } from '../interfaces';
+import { Component } from './Component';
+import { ComponentNames } from '.';
 
 export class Velocity extends Component {
   public velocity: Velocity2D;
 
   constructor(
-    velocity: Velocity2D = { dCartesian: { dx: 0, dy: 0 }, dTheta: 0 },
+    velocity: Velocity2D = { dCartesian: { dx: 0, dy: 0 }, dTheta: 0 }
   ) {
     super(ComponentNames.Velocity);
 

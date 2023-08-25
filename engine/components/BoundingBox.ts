@@ -1,6 +1,6 @@
-import { Component, ComponentNames } from ".";
-import type { Coord2D, Dimension2D } from "../interfaces";
-import { dotProduct, rotateVector } from "../utils";
+import { Component, ComponentNames } from '.';
+import type { Coord2D, Dimension2D } from '../interfaces';
+import { dotProduct, rotateVector } from '../utils';
 
 export class BoundingBox extends Component {
   public center: Coord2D;
@@ -48,8 +48,8 @@ export class BoundingBox extends Component {
               const projection = dotProduct(normal, vertex);
               return [Math.min(min, projection), Math.max(max, projection)];
             },
-            [Infinity, -Infinity],
-          ),
+            [Infinity, -Infinity]
+          )
         );
 
         if (maxThis < minBox || maxBox < minThis) return false;
@@ -64,14 +64,14 @@ export class BoundingBox extends Component {
       { x: -this.dimension.width / 2, y: -this.dimension.height / 2 },
       { x: -this.dimension.width / 2, y: this.dimension.height / 2 },
       { x: this.dimension.width / 2, y: this.dimension.height / 2 },
-      { x: this.dimension.width / 2, y: -this.dimension.height / 2 },
+      { x: this.dimension.width / 2, y: -this.dimension.height / 2 }
     ]
       .map((vertex) => rotateVector(vertex, this.rotation)) // rotate
       .map((vertex) => {
         // translate
         return {
           x: vertex.x + this.center.x,
-          y: vertex.y + this.center.y,
+          y: vertex.y + this.center.y
         };
       });
   }
@@ -92,28 +92,28 @@ export class BoundingBox extends Component {
     if (rads <= Math.PI / 2) {
       return {
         width: Math.abs(height * Math.sin(rads) + width * Math.cos(rads)),
-        height: Math.abs(width * Math.sin(rads) + height * Math.cos(rads)),
+        height: Math.abs(width * Math.sin(rads) + height * Math.cos(rads))
       };
     }
 
     rads -= Math.PI / 2;
     return {
       width: Math.abs(height * Math.cos(rads) + width * Math.sin(rads)),
-      height: Math.abs(width * Math.cos(rads) + height * Math.sin(rads)),
+      height: Math.abs(width * Math.cos(rads) + height * Math.sin(rads))
     };
   }
 
   public getTopLeft(): Coord2D {
     return {
       x: this.center.x - this.dimension.width / 2,
-      y: this.center.y - this.dimension.height / 2,
+      y: this.center.y - this.dimension.height / 2
     };
   }
 
   public getBottomRight(): Coord2D {
     return {
       x: this.center.x + this.dimension.width / 2,
-      y: this.center.y + this.dimension.height / 2,
+      y: this.center.y + this.dimension.height / 2
     };
   }
 }

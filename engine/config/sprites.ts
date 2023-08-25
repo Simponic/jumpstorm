@@ -1,7 +1,7 @@
 export enum Sprites {
   FLOOR,
   TRAMPOLINE,
-  COFFEE,
+  COFFEE
 }
 
 export interface SpriteSpec {
@@ -22,12 +22,12 @@ const floorSpriteSpec = {
   height: 40,
   frames: 3,
   msPerFrame: 125,
-  states: new Map<number, Partial<SpriteSpec>>(),
+  states: new Map<number, Partial<SpriteSpec>>()
 };
 [40, 80, 120, 160].forEach((width) => {
   floorSpriteSpec.states.set(width, {
     width,
-    sheet: `/assets/floor_tile_${width}.png`,
+    sheet: `/assets/floor_tile_${width}.png`
   });
 });
 SPRITE_SPECS.set(Sprites.FLOOR, floorSpriteSpec);
@@ -37,12 +37,12 @@ const coffeeSpriteSpec = {
   width: 60,
   height: 45,
   frames: 3,
-  states: new Map<string, Partial<SpriteSpec>>(),
+  states: new Map<string, Partial<SpriteSpec>>()
 };
-coffeeSpriteSpec.states.set("LEFT", {
-  sheet: "/assets/coffee_left.png",
+coffeeSpriteSpec.states.set('LEFT', {
+  sheet: '/assets/coffee_left.png'
 });
-coffeeSpriteSpec.states.set("RIGHT", {
-  sheet: "/assets/coffee_right.png",
+coffeeSpriteSpec.states.set('RIGHT', {
+  sheet: '/assets/coffee_right.png'
 });
 SPRITE_SPECS.set(Sprites.COFFEE, coffeeSpriteSpec);

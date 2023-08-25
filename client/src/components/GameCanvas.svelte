@@ -3,7 +3,7 @@
   import { loadAssets } from "@engine/config";
   import { Game } from "@engine/Game";
   import { JumpStorm } from "../JumpStorm";
-  
+
   let canvas: HTMLCanvasElement;
   let ctx: CanvasRenderingContext2D;
 
@@ -19,8 +19,7 @@
     const game = new Game();
     const jumpStorm = new JumpStorm(game);
 
-    const url = new URL(document.location);
-    await jumpStorm.init(ctx, "http", "ws", url.host  + "/api");
+    await jumpStorm.init(ctx, "http", "ws", document.location.host + "/api");
     jumpStorm.play();
   });
 </script>

@@ -1,5 +1,5 @@
-import { EntityNames, Player } from ".";
-import type { Component } from "../components";
+import { EntityNames, Player } from '.';
+import type { Component } from '../components';
 
 export abstract class Entity {
   public id: string;
@@ -18,7 +18,7 @@ export abstract class Entity {
 
   public getComponent<T extends Component>(name: string): T {
     if (!this.hasComponent(name)) {
-      throw new Error("Entity does not have component " + name);
+      throw new Error('Entity does not have component ' + name);
     }
     return this.components.get(name) as T;
   }
@@ -34,9 +34,11 @@ export abstract class Entity {
   static from(entityName: string, args: any): Entity {
     switch (entityName) {
       case EntityNames.Player:
-        return new Player(args.playerId);
+        const player = new Player(args.playerId);
+        player.id = args.id;
+        return player;
       default:
-        throw new Error(".from() Entity type not implemented: " + entityName);
+        throw new Error('.from() Entity type not implemented: ' + entityName);
     }
   }
 }
