@@ -1,6 +1,6 @@
-import type { Force2D } from "../interfaces";
-import { Component } from "./Component";
-import { ComponentNames } from ".";
+import type { Force2D } from '../interfaces';
+import { Component } from './Component';
+import { ComponentNames } from '.';
 
 /**
  * A list of forces and torque, (in newtons, and newton-meters respectively)

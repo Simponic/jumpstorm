@@ -1,4 +1,4 @@
-import { System, SystemNames } from ".";
+import { System, SystemNames } from '.';
 import {
   BoundingBox,
   ComponentNames,
@@ -8,11 +8,11 @@ import {
   Mass,
   Jump,
   Moment,
-  Control,
-} from "../components";
-import { PhysicsConstants } from "../config";
-import type { Force2D } from "../interfaces";
-import { Game } from "../Game";
+  Control
+} from '../components';
+import { PhysicsConstants } from '../config';
+import type { Force2D, Velocity2D } from '../interfaces';
+import { Game } from '../Game';
 
 export class Physics extends System {
   constructor() {
@@ -23,9 +23,11 @@ export class Physics extends System {
     game.forEachEntityWithComponent(ComponentNames.Forces, (entity) => {
       const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
       const forces = entity.getComponent<Forces>(ComponentNames.Forces).forces;
-      const velocity = entity.getComponent<Velocity>(ComponentNames.Velocity);
+      const velocity = entity.getComponent<Velocity>(
+        ComponentNames.Velocity
+      ).velocity;
       const inertia = entity.getComponent<Moment>(
-        ComponentNames.Moment,
+        ComponentNames.Moment
       ).inertia;
 
       // F_g = mg, applied only until terminal velocity is reached
@@ -35,9 +37,9 @@ export class Physics extends System {
           forces.push({
             fCartesian: {
               fy: mass * PhysicsConstants.GRAVITY,
-              fx: 0,
+              fx: 0
             },
-            torque: 0,
+            torque: 0
           });
         }
       }
@@ -47,17 +49,17 @@ export class Physics extends System {
         (accum: Force2D, { fCartesian, torque }: Force2D) => ({
           fCartesian: {
             fx: accum.fCartesian.fx + (fCartesian?.fx ?? 0),
-            fy: accum.fCartesian.fy + (fCartesian?.fy ?? 0),
+            fy: accum.fCartesian.fy + (fCartesian?.fy ?? 0)
           },
-          torque: accum.torque + (torque ?? 0),
+          torque: accum.torque + (torque ?? 0)
         }),
-        { fCartesian: { fx: 0, fy: 0 }, torque: 0 },
+        { fCartesian: { fx: 0, fy: 0 }, torque: 0 }
       );
 
       // integrate accelerations
       const [ddy, ddx] = [
         sumOfForces.fCartesian.fy,
-        sumOfForces.fCartesian.fx,
+        sumOfForces.fCartesian.fx
       ].map((x) => x / mass);
       velocity.dCartesian.dx += ddx * dt;
       velocity.dCartesian.dy += ddy * dt;
@@ -73,30 +75,32 @@ export class Physics extends System {
     });
 
     game.forEachEntityWithComponent(ComponentNames.Velocity, (entity) => {
-      const velocity: Velocity = new Velocity();
+      const velocityComponent: Velocity = new Velocity();
       const control = entity.getComponent<Control>(ComponentNames.Control);
 
-      velocity.add(entity.getComponent<Velocity>(ComponentNames.Velocity));
+      velocityComponent.add(
+        entity.getComponent<Velocity>(ComponentNames.Velocity).velocity
+      );
       if (control) {
-        velocity.add(control.controlVelocity);
+        velocityComponent.add(control.controlVelocityComponent.velocity);
       }
 
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
       // integrate velocity
-      boundingBox.center.x += velocity.dCartesian.dx * dt;
-      boundingBox.center.y += velocity.dCartesian.dy * dt;
-      boundingBox.rotation += velocity.dTheta * dt;
+      boundingBox.center.x += velocityComponent.velocity.dCartesian.dx * dt;
+      boundingBox.center.y += velocityComponent.velocity.dCartesian.dy * dt;
+      boundingBox.rotation += velocityComponent.velocity.dTheta * dt;
       boundingBox.rotation =
         (boundingBox.rotation < 0
           ? 360 + boundingBox.rotation
           : boundingBox.rotation) % 360;
 
       // clear the control velocity
-      if (control) {
-        control.controlVelocity = new Velocity();
+      if (control && control.isControllable) {
+        control.controlVelocityComponent = new Velocity();
       }
     });
   }

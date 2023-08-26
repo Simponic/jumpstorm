@@ -1,61 +1,59 @@
-import { SystemNames, System } from ".";
+import { SystemNames, System } from '.';
 import {
   Mass,
   BoundingBox,
   ComponentNames,
   Jump,
   Velocity,
-  Forces,
-} from "../components";
-import { Game } from "../Game";
-import { PhysicsConstants } from "../config";
-import { Entity } from "../entities";
-import type { Dimension2D } from "../interfaces";
-import { QuadTree } from "../structures";
+  Forces
+} from '../components';
+import { Game } from '../Game';
+import { Miscellaneous, PhysicsConstants } from '../config';
+import { Entity } from '../entities';
+import type { Coord2D, Dimension2D, Velocity2D } from '../interfaces';
+import { BoxedEntry, RefreshingCollisionFinderBehavior } from '../structures';
 
 export class Collision extends System {
   private static readonly COLLIDABLE_COMPONENT_NAMES = [
     ComponentNames.Collide,
-    ComponentNames.TopCollidable,
+    ComponentNames.TopCollidable
   ];
-  private static readonly QUADTREE_MAX_LEVELS = 10;
-  private static readonly QUADTREE_SPLIT_THRESHOLD = 10;
 
-  private quadTree: QuadTree;
+  private collisionFinder: RefreshingCollisionFinderBehavior;
 
-  constructor(screenDimensions: Dimension2D) {
+  constructor(refreshingCollisionFinder: RefreshingCollisionFinderBehavior) {
     super(SystemNames.Collision);
 
-    this.quadTree = new QuadTree(
-      { x: 0, y: 0 },
-      screenDimensions,
-      Collision.QUADTREE_MAX_LEVELS,
-      Collision.QUADTREE_SPLIT_THRESHOLD,
-    );
+    this.collisionFinder = refreshingCollisionFinder;
   }
 
   public update(_dt: number, game: Game) {
-    // rebuild the quadtree
-    this.quadTree.clear();
+    this.collisionFinder.clear();
 
-    const entitiesToAddToQuadtree: Entity[] = [];
+    const entitiesToAddToCollisionFinder: Entity[] = [];
 
     Collision.COLLIDABLE_COMPONENT_NAMES.map((componentName) =>
-      game.componentEntities.get(componentName),
-    ).forEach(
-      (entityIds?: Set<number>) =>
-        entityIds?.forEach((id) => {
-          const entity = game.entities.get(id);
-          if (!entity || !entity.hasComponent(ComponentNames.BoundingBox)) {
-            return;
-          }
-          entitiesToAddToQuadtree.push(entity);
-        }),
+      game.forEachEntityWithComponent(componentName, (entity) => {
+        if (!entity.hasComponent(ComponentNames.BoundingBox)) {
+          return;
+        }
+        entitiesToAddToCollisionFinder.push(entity);
+      })
     );
 
-    entitiesToAddToQuadtree.forEach((entity) => {
+    this.insertEntitiesAndUpdateBounds(entitiesToAddToCollisionFinder);
+    this.findCollidingEntitiesAndCollide(entitiesToAddToCollisionFinder, game);
+  }
+
+  private insertEntitiesAndUpdateBounds(entities: Entity[]) {
+    const collisionFinderInsertions: BoxedEntry[] = [];
+
+    const topLeft: Coord2D = { x: Infinity, y: Infinity };
+    const bottomRight: Coord2D = { x: -Infinity, y: -Infinity };
+
+    entities.forEach((entity) => {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
       let dimension = { ...boundingBox.dimension };
@@ -63,18 +61,43 @@ export class Collision extends System {
         dimension = boundingBox.getOutscribedBoxDims();
       }
 
-      this.quadTree.insert(entity.id, dimension, boundingBox.center);
+      const { center } = boundingBox;
+      const topLeftBoundingBox = boundingBox.getTopLeft();
+      const bottomRightBoundingBox = boundingBox.getBottomRight();
+
+      topLeft.x = Math.min(topLeftBoundingBox.x, topLeft.x);
+      topLeft.y = Math.min(topLeftBoundingBox.y, topLeft.y);
+      bottomRight.x = Math.max(bottomRightBoundingBox.x, bottomRight.x);
+      bottomRight.y = Math.max(bottomRightBoundingBox.y, bottomRight.y);
+
+      collisionFinderInsertions.push({
+        id: entity.id,
+        dimension,
+        center
+      });
     });
 
-    // find colliding entities and perform collisions
-    const collidingEntities = this.getCollidingEntities(
-      entitiesToAddToQuadtree,
-      game,
+    // set bounds first
+    if (entities.length > 0) {
+      this.collisionFinder.setTopLeft(topLeft);
+      this.collisionFinder.setDimension({
+        width: bottomRight.x - topLeft.x,
+        height: bottomRight.y - topLeft.y
+      });
+    }
+
+    // then, begin insertions
+    collisionFinderInsertions.forEach((boxedEntry: BoxedEntry) =>
+      this.collisionFinder.insert(boxedEntry)
     );
+  }
+
+  private findCollidingEntitiesAndCollide(entities: Entity[], game: Game) {
+    const collidingEntities = this.getCollidingEntities(entities, game);
 
     collidingEntities.forEach(([entityAId, entityBId]) => {
       const [entityA, entityB] = [entityAId, entityBId].map((id) =>
-        game.entities.get(id),
+        game.entities.get(id)
       );
       if (entityA && entityB) {
         this.performCollision(entityA, entityB);
@@ -84,12 +107,14 @@ export class Collision extends System {
 
   private performCollision(entityA: Entity, entityB: Entity) {
     const [entityABoundingBox, entityBBoundingBox] = [entityA, entityB].map(
-      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox),
+      (entity) => entity.getComponent<BoundingBox>(ComponentNames.BoundingBox)
     );
 
-    let velocity = new Velocity();
+    let velocity: Velocity2D = { dCartesian: { dx: 0, dy: 0 }, dTheta: 0 };
     if (entityA.hasComponent(ComponentNames.Velocity)) {
-      velocity = entityA.getComponent<Velocity>(ComponentNames.Velocity);
+      velocity = entityA.getComponent<Velocity>(
+        ComponentNames.Velocity
+      ).velocity;
     }
 
     if (
@@ -100,7 +125,7 @@ export class Collision extends System {
     ) {
       if (entityBBoundingBox.rotation != 0) {
         throw new Error(
-          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`,
+          `entity with id ${entityB.id} has TopCollidable component and a non-zero rotation. that is not (yet) supported.`
         );
       }
 
@@ -114,7 +139,7 @@ export class Collision extends System {
 
         entityA.getComponent<Forces>(ComponentNames.Forces).forces.push({
           fCartesian: { fy: F_n, fx: 0 },
-          torque: 0,
+          torque: 0
         });
       }
 
@@ -132,35 +157,33 @@ export class Collision extends System {
 
   private getCollidingEntities(
     collidableEntities: Entity[],
-    game: Game,
-  ): [number, number][] {
-    const collidingEntityIds: [number, number][] = [];
+    game: Game
+  ): [string, string][] {
+    const collidingEntityIds: [string, string][] = [];
 
     for (const entity of collidableEntities) {
       const boundingBox = entity.getComponent<BoundingBox>(
-        ComponentNames.BoundingBox,
+        ComponentNames.BoundingBox
       );
 
-      const neighborIds = this.quadTree
-        .getNeighborIds({
-          id: entity.id,
-          dimension: boundingBox.dimension,
-          center: boundingBox.center,
-        })
-        .filter((neighborId) => neighborId != entity.id);
+      const neighborIds = this.collisionFinder.getNeighborIds({
+        id: entity.id,
+        dimension: boundingBox.dimension,
+        center: boundingBox.center
+      });
 
-      neighborIds.forEach((neighborId) => {
+      for (const neighborId of neighborIds) {
         const neighbor = game.getEntity(neighborId);
         if (!neighbor) return;
 
         const neighborBoundingBox = neighbor.getComponent<BoundingBox>(
-          ComponentNames.BoundingBox,
+          ComponentNames.BoundingBox
         );
 
         if (boundingBox.isCollidingWith(neighborBoundingBox)) {
           collidingEntityIds.push([entity.id, neighborId]);
         }
-      });
+      }
     }
 
     return collidingEntityIds;
@@ -169,11 +192,11 @@ export class Collision extends System {
   // ramblings: https://excalidraw.com/#json=z-xD86Za4a3duZuV2Oky0,KaGe-5iHJu1Si8inEo4GLQ
   private getDyToPushOutOfFloor(
     entityBoundingBox: BoundingBox,
-    floorBoundingBox: BoundingBox,
+    floorBoundingBox: BoundingBox
   ): number {
     const {
       dimension: { width, height },
-      center: { x },
+      center: { x }
     } = entityBoundingBox;
 
     const outScribedRectangle = entityBoundingBox.getOutscribedBoxDims();
@@ -192,7 +215,7 @@ export class Collision extends System {
     if (x >= floorBoundingBox.center.x) {
       boundedCollisionX = Math.min(
         floorBoundingBox.center.x + floorBoundingBox.dimension.width / 2,
-        clippedX,
+        clippedX
       );
       return (
         outScribedRectangle.height / 2 -
@@ -202,7 +225,7 @@ export class Collision extends System {
 
     boundedCollisionX = Math.max(
       floorBoundingBox.center.x - floorBoundingBox.dimension.width / 2,
-      clippedX,
+      clippedX
     );
 
     return (

@@ -1,15 +1,15 @@
-@import url("./theme.css");
-@import url("./tf.css");
+@import url('./theme.css');
+@import url('./tf.css');
 
 @font-face {
-  font-family: "scientifica";
-  src: url("/fonts/scientifica.ttf");
+  font-family: 'scientifica';
+  src: url('/fonts/scientifica.ttf');
 }
 
 * {
   padding: 0;
   margin: 0;
-  font-family: "scientifica", monospace;
+  font-family: 'scientifica', monospace;
   transition: background 0.2s ease-in-out;
   font-smooth: never;
 }

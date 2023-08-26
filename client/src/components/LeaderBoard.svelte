@@ -3,7 +3,7 @@
 
   const MAX_ENTRIES = 8;
 
-  export let entries: { name: string, score: number }[] = [];
+  export let entries: { name: string; score: number }[] = [];
 </script>
 
 <div class="leaderboard">

@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
+  "extends": ["@tsconfig/svelte/tsconfig.json", "../tsconfig.engine.json"],
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
@@ -24,8 +24,5 @@
     "src/**/*.js",
     "src/**/*.svelte"
   ],
-  "paths": {
-    "@engine/*": ["../engine/*"]
-  },
   "references": [{ "path": "./tsconfig.node.json" }]
 }

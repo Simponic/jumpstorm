@@ -1,15 +1,19 @@
-import { IMAGES, SPRITE_SPECS, Sprites, type SpriteSpec } from "../config";
-import { BoundingBox, Sprite } from "../components";
-import { TopCollidable } from "../components/TopCollidable";
-import { Entity } from "../entities";
+import { IMAGES, SPRITE_SPECS, Sprites, type SpriteSpec } from '../config';
+import { BoundingBox, ComponentNames, Sprite } from '../components';
+import { TopCollidable } from '../components/TopCollidable';
+import { Entity, EntityNames } from '../entities';
 
 export class Floor extends Entity {
   private static spriteSpec: SpriteSpec = SPRITE_SPECS.get(
-    Sprites.FLOOR,
+    Sprites.FLOOR
   ) as SpriteSpec;
 
+  private width: number;
+
   constructor(width: number) {
-    super();
+    super(EntityNames.Floor);
+
+    this.width = width;
 
     this.addComponent(
       new Sprite(
@@ -17,17 +21,28 @@ export class Floor extends Entity {
         { x: 0, y: 0 },
         { width, height: Floor.spriteSpec.height },
         Floor.spriteSpec.msPerFrame,
-        Floor.spriteSpec.frames,
-      ),
-    );
-
-    this.addComponent(
-      new BoundingBox(
-        { x: 300, y: 300 },
-        { width, height: Floor.spriteSpec.height },
-      ),
+        Floor.spriteSpec.frames
+      )
     );
 
     this.addComponent(new TopCollidable());
+  }
+
+  public serialize() {
+    return {
+      floorWidth: this.width,
+      boundingBox: this.getComponent<BoundingBox>(ComponentNames.BoundingBox)
+    };
+  }
+
+  public setFrom(args: any) {
+    const { boundingBox } = args;
+    this.addComponent(
+      new BoundingBox(
+        boundingBox.center,
+        boundingBox.dimension,
+        boundingBox.rotation
+      )
+    );
   }
 }

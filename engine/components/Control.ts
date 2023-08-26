@@ -1,11 +1,18 @@
-import { Component, ComponentNames, Velocity } from ".";
+import { Component, ComponentNames, Velocity } from '.';
 
 export class Control extends Component {
-  public controlVelocity: Velocity;
+  public controlVelocityComponent: Velocity;
+  public controllableBy: string;
+  public isControllable: boolean; // computed each update in the input system
 
-  constructor(controlVelocity: Velocity = new Velocity()) {
+  constructor(
+    controllableBy: string,
+    controlVelocityComponent: Velocity = new Velocity()
+  ) {
     super(ComponentNames.Control);
 
-    this.controlVelocity = controlVelocity;
+    this.controllableBy = controllableBy;
+    this.controlVelocityComponent = controlVelocityComponent;
+    this.isControllable = false;
   }
 }

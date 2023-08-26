@@ -1,4 +1,4 @@
-import { Component, ComponentNames } from ".";
+import { Component, ComponentNames } from '.';
 
 export class Jump extends Component {
   public canJump: boolean;

@@ -10,7 +10,7 @@
   --orange: #af3a03;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg: #282828;
   --text: #f9f5d7;
   --red: #fb4934;

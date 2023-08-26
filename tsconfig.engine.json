@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@engine/*": ["./engine/*"],
+      "@engine/components": ["./engine/components"],
+      "@engine/config": ["./engine/config"],
+      "@engine/entities": ["./engine/entities"],
+      "@engine/interfaces": ["./engine/interfaces"],
+      "@engine/structures": ["./engine/structures"],
+      "@engine/systems": ["./engine/systems"],
+      "@engine/utils": ["./engine/utils"],
+      "@engine/network": ["./engine/network"]
+    }
+  }
+}
