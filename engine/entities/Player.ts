@@ -10,9 +10,10 @@ import {
   WallBounded,
   Forces,
   Collide,
-  Control,
   Mass,
-  Moment
+  Moment,
+  ComponentNames,
+  Control
 } from '../components';
 import { Direction } from '../interfaces';
 
@@ -24,14 +25,14 @@ export class Player extends Entity {
     Sprites.COFFEE
   ) as SpriteSpec;
 
-  constructor(playerId: string) {
+  constructor() {
     super(EntityNames.Player);
 
     this.addComponent(
       new BoundingBox(
         {
-          x: 300,
-          y: 100
+          x: 0,
+          y: 0
         },
         { width: Player.spriteSpec.width, height: Player.spriteSpec.height },
         0
@@ -48,7 +49,6 @@ export class Player extends Entity {
     this.addComponent(new Gravity());
 
     this.addComponent(new Jump());
-    this.addComponent(new Control(playerId));
 
     this.addComponent(new Collide());
     this.addComponent(new WallBounded());
@@ -69,6 +69,36 @@ export class Player extends Entity {
     );
 
     this.addComponent(new FacingDirection(leftSprite, rightSprite));
-    this.addComponent(leftSprite); // face Left by default
+    this.addComponent(leftSprite); // face left by default
+  }
+
+  public serialize(): Record<string, any> {
+    return {
+      control: this.getComponent<Control>(ComponentNames.Control),
+      boundingBox: this.getComponent<BoundingBox>(ComponentNames.BoundingBox),
+      velocity: this.getComponent<Velocity>(ComponentNames.Velocity),
+      forces: this.getComponent<Forces>(ComponentNames.Forces)
+    };
+  }
+
+  public setFrom(args: Record<string, any>) {
+    const { control, velocity, forces, boundingBox } = args;
+
+    let center = boundingBox.center;
+
+    const myCenter = this.getComponent<BoundingBox>(
+      ComponentNames.BoundingBox
+    ).center;
+    const distance = Math.sqrt(
+      Math.pow(center.y - myCenter.y, 2) + Math.pow(center.x - myCenter.x, 2)
+    );
+    if (distance < 30) center = myCenter;
+
+    [
+      Object.assign(new Control(control.controllableBy), control),
+      new Velocity(velocity.velocity),
+      new Forces(forces.forces),
+      new BoundingBox(center, boundingBox.dimension, boundingBox.rotation)
+    ].forEach((component) => this.addComponent(component));
   }
 }

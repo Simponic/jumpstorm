@@ -1,12 +1,15 @@
-import { EntityNames, Player } from '.';
-import type { Component } from '../components';
+import { EntityNames, Floor, Player } from '.';
+import { type Component } from '../components';
+
+const randomId = () =>
+  (performance.now() + Math.random() * 10_000_000).toString();
 
 export abstract class Entity {
   public id: string;
   public components: Map<string, Component>;
   public name: string;
 
-  constructor(name: string, id: string = crypto.randomUUID()) {
+  constructor(name: string, id: string = randomId()) {
     this.name = name;
     this.id = id;
     this.components = new Map();
@@ -31,14 +34,29 @@ export abstract class Entity {
     return this.components.has(name);
   }
 
-  static from(entityName: string, args: any): Entity {
+  public static from(entityName: string, id: string, args: any): Entity {
+    let entity: Entity;
+
     switch (entityName) {
       case EntityNames.Player:
-        const player = new Player(args.playerId);
-        player.id = args.id;
-        return player;
+        const player = new Player();
+        player.setFrom(args);
+        entity = player;
+        break;
+      case EntityNames.Floor:
+        const floor = new Floor(args.floorWidth);
+        floor.setFrom(args);
+        entity = floor;
+        break;
       default:
         throw new Error('.from() Entity type not implemented: ' + entityName);
     }
+
+    entity.id = id;
+    return entity;
   }
+
+  public abstract setFrom(args: Record<string, any>): void;
+
+  public abstract serialize(): Record<string, any>;
 }

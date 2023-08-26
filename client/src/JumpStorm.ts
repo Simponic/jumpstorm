@@ -1,5 +1,5 @@
 import { Game } from '@engine/Game';
-import { Entity, Floor } from '@engine/entities';
+import { Entity } from '@engine/entities';
 import { Grid } from '@engine/structures';
 import {
   WallBounds,
@@ -16,11 +16,10 @@ import {
   type MessageProcessor,
   type Message,
   type EntityAddBody,
-  MessageType
+  MessageType,
+  type EntityUpdateBody
 } from '@engine/network';
 import { stringify, parse } from '@engine/utils';
-import { BoundingBox, Sprite } from '@engine/components';
-import { Miscellaneous } from '@engine/config';
 
 class ClientMessageProcessor implements MessageProcessor {
   private game: Game;
@@ -34,17 +33,24 @@ class ClientMessageProcessor implements MessageProcessor {
       case MessageType.NEW_ENTITIES:
         const entityAdditions = message.body as unknown as EntityAddBody[];
         entityAdditions.forEach((addBody) =>
-          this.game.addEntity(Entity.from(addBody.entityName, addBody.args))
+          this.game.addEntity(
+            Entity.from(addBody.entityName, addBody.id, addBody.args)
+          )
         );
         break;
       case MessageType.REMOVE_ENTITIES:
         const ids = message.body as unknown as string[];
         ids.forEach((id) => this.game.removeEntity(id));
         break;
+      case MessageType.UPDATE_ENTITIES:
+        const entityUpdates = message.body as unknown as EntityUpdateBody[];
+        entityUpdates.forEach(
+          ({ id, args }) => this.game.getEntity(id)?.setFrom(args)
+        );
+        break;
       default:
         break;
     }
-    console.log(message);
   }
 }
 
@@ -85,9 +91,12 @@ class ClientSocketMessagePublisher implements MessagePublisher {
   }
 
   public publish() {
-    this.messages.forEach((message: Message) =>
-      this.socket.send(stringify(message))
-    );
+    if (this.socket.readyState == WebSocket.OPEN) {
+      this.messages.forEach((message: Message) =>
+        this.socket.send(stringify(message))
+      );
+      this.messages = [];
+    }
   }
 }
 
@@ -105,19 +114,9 @@ export class JumpStorm {
     wsMethod: string,
     host: string
   ) {
-    await fetch(`${httpMethod}://${host}/assign`)
-      .then((resp) => {
-        if (resp.ok) {
-          return resp.text();
-        }
-        throw resp;
-      })
-      .then((cookie) => {
-        this.clientId = cookie;
-      });
-
-    const grid = new Grid();
-
+    this.clientId = await this.getAssignedCookie(
+      `${httpMethod}://${host}/assign`
+    );
     const socket = new WebSocket(`${wsMethod}://${host}/game`);
     const clientSocketMessageQueueProvider =
       new ClientSocketMessageQueueProvider(socket);
@@ -125,33 +124,25 @@ export class JumpStorm {
       socket
     );
     const clientMessageProcessor = new ClientMessageProcessor(this.game);
+
+    const inputSystem = new Input(this.clientId, clientSocketMessagePublisher);
+    this.addWindowEventListenersToInputSystem(inputSystem);
+
+    const grid = new Grid();
+
     [
-      this.createInputSystem(),
-      new FacingDirection(),
-      new Physics(),
-      new Collision(grid),
-      new WallBounds(),
       new NetworkUpdate(
         clientSocketMessageQueueProvider,
         clientSocketMessagePublisher,
         clientMessageProcessor
       ),
+      inputSystem,
+      new FacingDirection(),
+      new Physics(),
+      new Collision(grid),
+      new WallBounds(),
       new Render(ctx)
     ].forEach((system) => this.game.addSystem(system));
-
-    const floor = new Floor(160);
-    const floorHeight = 40;
-
-    floor.addComponent(
-      new BoundingBox(
-        {
-          x: Miscellaneous.WIDTH / 2,
-          y: Miscellaneous.HEIGHT - floorHeight / 2
-        },
-        { width: Miscellaneous.WIDTH, height: floorHeight }
-      )
-    );
-    this.game.addEntity(floor);
   }
 
   public play() {
@@ -164,17 +155,26 @@ export class JumpStorm {
     requestAnimationFrame(loop);
   }
 
-  private createInputSystem(): Input {
-    const inputSystem = new Input(this.clientId);
-
+  private addWindowEventListenersToInputSystem(input: Input) {
     window.addEventListener('keydown', (e) => {
       if (!e.repeat) {
-        inputSystem.keyPressed(e.key);
+        input.keyPressed(e.key.toLowerCase());
       }
     });
 
-    window.addEventListener('keyup', (e) => inputSystem.keyReleased(e.key));
+    window.addEventListener('keyup', (e) =>
+      input.keyReleased(e.key.toLowerCase())
+    );
+  }
 
-    return inputSystem;
+  private async getAssignedCookie(endpoint: string): Promise<string> {
+    return fetch(endpoint)
+      .then((resp) => {
+        if (resp.ok) {
+          return resp.text();
+        }
+        throw resp;
+      })
+      .then((cookie) => cookie);
   }
 }

@@ -5,9 +5,10 @@ import { fileURLToPath, URL } from 'node:url';
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
+    host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://10.0.0.237:8080',
         ws: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }

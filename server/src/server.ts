@@ -1,35 +1,38 @@
 import { Game } from '@engine/Game';
-import { EntityNames, Player } from '@engine/entities';
-import { MessageType } from '@engine/network';
+import { Player } from '@engine/entities';
+import { Message, MessageType } from '@engine/network';
 import { Constants } from './constants';
 import {
   ServerSocketMessageReceiver,
   ServerSocketMessagePublisher,
   SessionData,
   ServerMessage,
-  Session
+  Session,
+  SessionManager
 } from './network';
 import { parse } from '@engine/utils';
 import { Server, ServerWebSocket } from 'bun';
+import { Input } from '@engine/systems';
+import { Control, NetworkUpdateable } from '@engine/components';
+import { stringify } from '@engine/utils';
 
 export class GameServer {
-  private sessions: Map<string, Session>;
-
   private server?: Server;
   private game: Game;
   private messageReceiver: ServerSocketMessageReceiver;
   private messagePublisher: ServerSocketMessagePublisher;
+  private sessionManager: SessionManager;
 
   constructor(
     game: Game,
     messageReceiver: ServerSocketMessageReceiver,
-    messagePublisher: ServerSocketMessagePublisher
+    messagePublisher: ServerSocketMessagePublisher,
+    sessionManager: SessionManager
   ) {
-    this.sessions = new Map();
-
     this.game = game;
     this.messageReceiver = messageReceiver;
     this.messagePublisher = messagePublisher;
+    this.sessionManager = sessionManager;
   }
 
   public serve() {
@@ -64,10 +67,12 @@ export class GameServer {
   private closeWebsocket(websocket: ServerWebSocket<SessionData>) {
     const { sessionId } = websocket.data;
 
-    const sessionEntities = this.sessions.get(sessionId)!.controllableEntities;
-    this.sessions.delete(sessionId);
+    const sessionEntities =
+      this.sessionManager.getSession(sessionId)!.controllableEntities;
+    this.sessionManager.removeSession(sessionId);
 
     if (!sessionEntities) return;
+    sessionEntities.forEach((id) => this.game.removeEntity(id));
 
     this.messagePublisher.addMessage({
       type: MessageType.REMOVE_ENTITIES,
@@ -79,28 +84,51 @@ export class GameServer {
     websocket.subscribe(Constants.GAME_TOPIC);
 
     const { sessionId } = websocket.data;
-    if (this.sessions.has(sessionId)) {
+    if (this.sessionManager.getSession(sessionId)) {
       return;
     }
 
-    this.sessions.set(sessionId, {
+    const newSession: Session = {
       sessionId,
-      controllableEntities: new Set()
-    });
+      controllableEntities: new Set(),
+      inputSystem: new Input(sessionId)
+    };
 
-    const player = new Player(sessionId);
+    const player = new Player();
+    player.addComponent(new Control(sessionId));
+    player.addComponent(new NetworkUpdateable());
     this.game.addEntity(player);
-    this.messagePublisher.addMessage({
+
+    newSession.controllableEntities.add(player.id);
+    this.sessionManager.putSession(sessionId, newSession);
+
+    const addCurrentEntities: Message[] = [
+      {
+        type: MessageType.NEW_ENTITIES,
+        body: Array.from(this.game.entities.values())
+          .filter((entity) => entity.id != player.id)
+          .map((entity) => {
+            return {
+              id: entity.id,
+              entityName: entity.name,
+              args: entity.serialize()
+            };
+          })
+      }
+    ];
+    websocket.sendText(stringify(addCurrentEntities));
+
+    const addNewPlayer: Message = {
       type: MessageType.NEW_ENTITIES,
       body: [
         {
-          entityName: EntityNames.Player,
-          args: { playerId: sessionId, id: player.id }
+          id: player.id,
+          entityName: player.name,
+          args: player.serialize()
         }
       ]
-    });
-
-    this.sessions.get(sessionId)!.controllableEntities.add(player.id);
+    };
+    this.messagePublisher.addMessage(addNewPlayer);
   }
 
   private fetchHandler(req: Request, server: Server): Response {
@@ -110,7 +138,7 @@ export class GameServer {
     headers.set('Access-Control-Allow-Origin', '*');
 
     if (url.pathname == '/assign') {
-      if (this.sessions.size > Constants.MAX_PLAYERS)
+      if (this.sessionManager.numSessions() > Constants.MAX_PLAYERS)
         return new Response('too many players', { headers, status: 400 });
 
       const sessionId = crypto.randomUUID();
@@ -127,10 +155,6 @@ export class GameServer {
     const sessionId = cookie.split(';').at(0)!.split('SessionId=').at(1);
 
     if (url.pathname == '/game') {
-      headers.set(
-        'Set-Cookie',
-        `SessionId=${sessionId}; HttpOnly; SameSite=Strict;`
-      );
       server.upgrade(req, {
         headers,
         data: {

@@ -99,7 +99,7 @@ export class Physics extends System {
           : boundingBox.rotation) % 360;
 
       // clear the control velocity
-      if (control) {
+      if (control && control.isControllable) {
         control.controlVelocityComponent = new Velocity();
       }
     });

@@ -1,5 +1,5 @@
 import { IMAGES, SPRITE_SPECS, Sprites, type SpriteSpec } from '../config';
-import { BoundingBox, Sprite } from '../components';
+import { BoundingBox, ComponentNames, Sprite } from '../components';
 import { TopCollidable } from '../components/TopCollidable';
 import { Entity, EntityNames } from '../entities';
 
@@ -8,8 +8,12 @@ export class Floor extends Entity {
     Sprites.FLOOR
   ) as SpriteSpec;
 
+  private width: number;
+
   constructor(width: number) {
     super(EntityNames.Floor);
+
+    this.width = width;
 
     this.addComponent(
       new Sprite(
@@ -22,5 +26,23 @@ export class Floor extends Entity {
     );
 
     this.addComponent(new TopCollidable());
+  }
+
+  public serialize() {
+    return {
+      floorWidth: this.width,
+      boundingBox: this.getComponent<BoundingBox>(ComponentNames.BoundingBox)
+    };
+  }
+
+  public setFrom(args: any) {
+    const { boundingBox } = args;
+    this.addComponent(
+      new BoundingBox(
+        boundingBox.center,
+        boundingBox.dimension,
+        boundingBox.rotation
+      )
+    );
   }
 }
