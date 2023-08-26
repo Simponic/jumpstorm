@@ -65,10 +65,10 @@ export class GameServer {
     const { sessionId } = websocket.data;
 
     const sessionEntities = this.sessions.get(sessionId)!.controllableEntities;
-
     this.sessions.delete(sessionId);
 
     if (!sessionEntities) return;
+
     this.messagePublisher.addMessage({
       type: MessageType.REMOVE_ENTITIES,
       body: Array.from(sessionEntities)
@@ -103,10 +103,7 @@ export class GameServer {
     this.sessions.get(sessionId)!.controllableEntities.add(player.id);
   }
 
-  private fetchHandler(
-    req: Request,
-    server: Server
-  ): Promise<Response> | Response {
+  private fetchHandler(req: Request, server: Server): Response {
     const url = new URL(req.url);
 
     const headers = new Headers();

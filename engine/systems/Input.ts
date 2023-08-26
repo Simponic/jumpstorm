@@ -75,13 +75,17 @@ export class Input extends System {
             PhysicsConstants.MAX_JUMP_TIME_MS
           ) {
             const mass = entity.getComponent<Mass>(ComponentNames.Mass).mass;
-            entity.getComponent<Forces>(ComponentNames.Forces)?.forces.push({
+
+            const jumpForce = {
               fCartesian: {
                 fy: mass * PhysicsConstants.PLAYER_JUMP_ACC,
                 fx: 0
               },
               torque: 0
-            });
+            };
+            entity
+              .getComponent<Forces>(ComponentNames.Forces)
+              ?.forces.push(jumpForce);
           }
         }
       }
