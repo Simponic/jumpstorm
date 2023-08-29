@@ -82,7 +82,7 @@ export class Player extends Entity {
   }
 
   public setFrom(args: Record<string, any>) {
-    const { control, velocity, forces, boundingBox } = args;
+    const { control, forces, velocity, boundingBox } = args;
 
     let center = boundingBox.center;
 
@@ -92,7 +92,8 @@ export class Player extends Entity {
     const distance = Math.sqrt(
       Math.pow(center.y - myCenter.y, 2) + Math.pow(center.x - myCenter.x, 2)
     );
-    if (distance < 30) center = myCenter;
+    const clientServerPredictionCenterThreshold = 30;
+    if (distance < clientServerPredictionCenterThreshold) center = myCenter;
 
     [
       Object.assign(new Control(control.controllableBy), control),

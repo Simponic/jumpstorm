@@ -8,7 +8,8 @@ import {
   Physics,
   Input,
   Collision,
-  NetworkUpdate
+  NetworkUpdate,
+  SystemNames
 } from '@engine/systems';
 import {
   type MessageQueueProvider,
@@ -20,6 +21,7 @@ import {
   type EntityUpdateBody
 } from '@engine/network';
 import { stringify, parse } from '@engine/utils';
+import { ComponentNames, Control, NetworkUpdateable } from '@engine/components';
 
 class ClientMessageProcessor implements MessageProcessor {
   private game: Game;
@@ -32,11 +34,27 @@ class ClientMessageProcessor implements MessageProcessor {
     switch (message.type) {
       case MessageType.NEW_ENTITIES:
         const entityAdditions = message.body as unknown as EntityAddBody[];
-        entityAdditions.forEach((addBody) =>
-          this.game.addEntity(
-            Entity.from(addBody.entityName, addBody.id, addBody.args)
-          )
-        );
+        entityAdditions.forEach((addBody) => {
+          const entity = Entity.from(
+            addBody.entityName,
+            addBody.id,
+            addBody.args
+          );
+          if (entity.hasComponent(ComponentNames.Control)) {
+            const clientId = this.game.getSystem<Input>(
+              SystemNames.Input
+            ).clientId;
+            const control = entity.getComponent<Control>(
+              ComponentNames.Control
+            );
+
+            if (control.controllableBy === clientId) {
+              entity.addComponent(new NetworkUpdateable());
+            }
+          }
+
+          this.game.addEntity(entity);
+        });
         break;
       case MessageType.REMOVE_ENTITIES:
         const ids = message.body as unknown as string[];
@@ -44,9 +62,22 @@ class ClientMessageProcessor implements MessageProcessor {
         break;
       case MessageType.UPDATE_ENTITIES:
         const entityUpdates = message.body as unknown as EntityUpdateBody[];
-        entityUpdates.forEach(
-          ({ id, args }) => this.game.getEntity(id)?.setFrom(args)
-        );
+        entityUpdates.forEach(({ id, args }) => {
+          const entity = this.game.getEntity(id);
+          if (!entity) return;
+          if (entity && entity.hasComponent(ComponentNames.Control)) {
+            const clientId = this.game.getSystem<Input>(
+              SystemNames.Input
+            ).clientId;
+            const control = entity.getComponent<Control>(
+              ComponentNames.Control
+            );
+
+            // don't listen to entities which we control
+            if (control.controllableBy == clientId) return;
+          }
+          entity.setFrom(args);
+        });
         break;
       default:
         break;
@@ -131,6 +162,7 @@ export class JumpStorm {
     const grid = new Grid();
 
     [
+      new Physics(),
       new NetworkUpdate(
         clientSocketMessageQueueProvider,
         clientSocketMessagePublisher,
@@ -138,7 +170,6 @@ export class JumpStorm {
       ),
       inputSystem,
       new FacingDirection(),
-      new Physics(),
       new Collision(grid),
       new WallBounds(),
       new Render(ctx)

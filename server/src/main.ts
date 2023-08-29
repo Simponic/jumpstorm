@@ -30,9 +30,9 @@ const server = new GameServer(
 );
 
 [
+  new Physics(),
   new SessionInputSystem(sessionManager),
   new NetworkUpdate(messageReceiver, messagePublisher, messageProcessor),
-  new Physics(),
   new Collision(new Grid()),
   new WallBounds()
 ].forEach((system) => game.addSystem(system));
@@ -44,9 +44,9 @@ floor.addComponent(
   new BoundingBox(
     {
       x: Miscellaneous.WIDTH / 2,
-      y: Miscellaneous.HEIGHT + floorHeight / 2
+      y: Miscellaneous.HEIGHT - floorHeight / 2
     },
-    { width: Miscellaneous.WIDTH, height: floorHeight }
+    { width: Miscellaneous.WIDTH / 2, height: floorHeight }
   )
 );
 game.addEntity(floor);

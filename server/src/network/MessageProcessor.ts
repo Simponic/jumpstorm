@@ -29,8 +29,16 @@ export class ServerMessageProcessor implements MessageProcessor {
         session?.inputSystem.keyReleased(message.body as string);
         break;
       }
-      default:
+      case MessageType.UPDATE_ENTITIES: {
+        const entityUpdates = message.body as unknown as EntityUpdateBody[];
+        entityUpdates.forEach(({ id, args }) =>
+          this.game.getEntity(id)?.setFrom(args)
+        );
         break;
+      }
+      default: {
+        break;
+      }
     }
   }
 }

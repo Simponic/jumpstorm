@@ -11,7 +11,7 @@ import {
   Control
 } from '../components';
 import { PhysicsConstants } from '../config';
-import type { Force2D, Velocity2D } from '../interfaces';
+import type { Force2D } from '../interfaces';
 import { Game } from '../Game';
 
 export class Physics extends System {
@@ -98,7 +98,7 @@ export class Physics extends System {
           ? 360 + boundingBox.rotation
           : boundingBox.rotation) % 360;
 
-      // clear the control velocity
+      // clear the control velocity if and only if we are controlling
       if (control && control.isControllable) {
         control.controlVelocityComponent = new Velocity();
       }

@@ -8,13 +8,16 @@ import {
   MessageType,
   EntityUpdateBody
 } from '../network';
+import { stringify } from '../utils';
+
+type EntityUpdateInfo = { timer: number; hash: string };
 
 export class NetworkUpdate extends System {
   private queueProvider: MessageQueueProvider;
   private publisher: MessagePublisher;
   private messageProcessor: MessageProcessor;
 
-  private entityUpdateTimers: Map<string, number>;
+  private entityUpdateInfo: Map<string, EntityUpdateInfo>;
 
   constructor(
     queueProvider: MessageQueueProvider,
@@ -27,10 +30,20 @@ export class NetworkUpdate extends System {
     this.publisher = publisher;
     this.messageProcessor = messageProcessor;
 
-    this.entityUpdateTimers = new Map();
+    this.entityUpdateInfo = new Map();
   }
 
   public update(dt: number, game: Game) {
+    // 0. remove unnecessary info for removed entities
+    const networkUpdateableEntities = game.componentEntities.get(
+      ComponentNames.NetworkUpdateable
+    );
+    for (const entityId of this.entityUpdateInfo.keys()) {
+      if (!networkUpdateableEntities?.has(entityId)) {
+        this.entityUpdateInfo.delete(entityId);
+      }
+    }
+
     // 1. process new messages
     this.queueProvider
       .getNewMessages()
@@ -39,34 +52,51 @@ export class NetworkUpdate extends System {
 
     // 2. send entity updates
     const updateMessages: EntityUpdateBody[] = [];
+
+    // todo: figure out if we can use the controllable component to determine if we should publish an update
     game.forEachEntityWithComponent(
       ComponentNames.NetworkUpdateable,
       (entity) => {
-        let timer = this.entityUpdateTimers.get(entity.id) ?? dt;
-        timer -= dt;
-        this.entityUpdateTimers.set(entity.id, timer);
+        const newHash = stringify(entity.serialize());
+        let updateInfo: EntityUpdateInfo = this.entityUpdateInfo.get(
+          entity.id
+        ) ?? {
+          timer: this.getNextUpdateTimeMs(),
+          hash: newHash
+        };
 
-        if (timer > 0) return;
-        this.entityUpdateTimers.set(entity.id, this.getNextUpdateTimeMs());
+        // update timer
+        updateInfo.timer -= dt;
+        this.entityUpdateInfo.set(entity.id, updateInfo);
+        if (updateInfo.timer > 0) return;
+        updateInfo.timer = this.getNextUpdateTimeMs();
+        this.entityUpdateInfo.set(entity.id, updateInfo);
 
-        if (entity.hasComponent(ComponentNames.NetworkUpdateable)) {
-          updateMessages.push({
-            id: entity.id,
-            args: entity.serialize()
-          });
+        // maybe update if hash is not consitent
+        if (updateInfo.hash == newHash) {
+          return;
         }
+        updateInfo.hash = newHash;
+        this.entityUpdateInfo.set(entity.id, updateInfo);
+
+        updateMessages.push({
+          id: entity.id,
+          args: entity.serialize()
+        });
       }
     );
-    this.publisher.addMessage({
-      type: MessageType.UPDATE_ENTITIES,
-      body: updateMessages
-    });
+
+    if (updateMessages.length)
+      this.publisher.addMessage({
+        type: MessageType.UPDATE_ENTITIES,
+        body: updateMessages
+      });
 
     // 3. publish changes
     this.publisher.publish();
   }
 
   private getNextUpdateTimeMs() {
-    return Math.random() * 70 + 50;
+    return Math.random() * 30 + 50;
   }
 }

@@ -56,8 +56,8 @@ export class Game {
     this.systems.set(system.name, system);
   }
 
-  public getSystem(name: string): System | undefined {
-    return this.systems.get(name);
+  public getSystem<T>(name: string): T {
+    return this.systems.get(name) as unknown as T;
   }
 
   public doGameLoop(timeStamp: number) {

@@ -11,4 +11,5 @@ export interface RefreshingCollisionFinderBehavior {
   insert(boxedEntry: BoxedEntry): void;
   getNeighborIds(boxedEntry: BoxedEntry): Set<string>;
   setTopLeft(topLeft: Coord2D): void;
+  setDimension(dimension: Dimension2D): void;
 }

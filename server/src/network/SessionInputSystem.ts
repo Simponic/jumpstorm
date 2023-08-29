@@ -1,7 +1,7 @@
 import { Game } from '@engine/Game';
 import { SessionManager } from '.';
 import { System } from '@engine/systems';
-import { BoundingBox, ComponentNames, Control } from '@engine/components';
+import { ComponentNames } from '@engine/components';
 
 export class SessionInputSystem extends System {
   private sessionManager: SessionManager;
