@@ -59,4 +59,6 @@ export abstract class Entity {
   public abstract setFrom(args: Record<string, any>): void;
 
   public abstract serialize(): Record<string, any>;
+
+  public abstract getNextUpdateInterval(): number;
 }

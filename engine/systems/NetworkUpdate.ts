@@ -16,8 +16,9 @@ export class NetworkUpdate extends System {
   private queueProvider: MessageQueueProvider;
   private publisher: MessagePublisher;
   private messageProcessor: MessageProcessor;
-
   private entityUpdateInfo: Map<string, EntityUpdateInfo>;
+
+  private nextPublishInterval: number;
 
   constructor(
     queueProvider: MessageQueueProvider,
@@ -31,6 +32,7 @@ export class NetworkUpdate extends System {
     this.messageProcessor = messageProcessor;
 
     this.entityUpdateInfo = new Map();
+    this.nextPublishInterval = 0;
   }
 
   public update(dt: number, game: Game) {
@@ -69,7 +71,7 @@ export class NetworkUpdate extends System {
         updateInfo.timer -= dt;
         this.entityUpdateInfo.set(entity.id, updateInfo);
         if (updateInfo.timer > 0) return;
-        updateInfo.timer = this.getNextUpdateTimeMs();
+        updateInfo.timer = entity.getNextUpdateInterval();
         this.entityUpdateInfo.set(entity.id, updateInfo);
 
         // maybe update if hash is not consitent
@@ -92,11 +94,15 @@ export class NetworkUpdate extends System {
         body: updateMessages
       });
 
-    // 3. publish changes
-    this.publisher.publish();
+    // 3. maybe publish changes - we don't want to overload the socket
+    this.nextPublishInterval -= dt;
+    if (this.nextPublishInterval < 0) {
+      this.publisher.publish();
+      this.nextPublishInterval = this.getNextUpdateInterval();
+    }
   }
 
-  private getNextUpdateTimeMs() {
-    return Math.random() * 30 + 50;
+  private getNextUpdateInterval(): number {
+    return Math.random() * 30;
   }
 }

@@ -102,4 +102,8 @@ export class Player extends Entity {
       new BoundingBox(center, boundingBox.dimension, boundingBox.rotation)
     ].forEach((component) => this.addComponent(component));
   }
+
+  public getNextUpdateInterval() {
+    return Math.random() * 30 + 50;
+  }
 }

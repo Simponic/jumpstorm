@@ -45,4 +45,8 @@ export class Floor extends Entity {
       )
     );
   }
+
+  public getNextUpdateInterval() {
+    return Math.random() * 500;
+  }
 }
