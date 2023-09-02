@@ -67,9 +67,6 @@ export class Grid implements RefreshingCollisionFinderBehavior {
     const yBoxes = Math.ceil(
       this.gridDimension.height / this.cellDimension.height
     );
-    const xBoxes = Math.ceil(
-      this.gridDimension.width / this.cellDimension.width
-    );
 
     const translated: Coord2D = {
       y: center.y - this.topLeft.y,

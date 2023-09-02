@@ -32,7 +32,7 @@ export class NetworkUpdate extends System {
     this.messageProcessor = messageProcessor;
 
     this.entityUpdateInfo = new Map();
-    this.nextPublishInterval = 0;
+    this.nextPublishInterval = this.getNextUpdateInterval();
   }
 
   public update(dt: number, game: Game) {

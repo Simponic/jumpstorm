@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  client:
+    build:
+      dockerfile: Dockerfile.client
+    networks:
+      - webapp
+    ports:
+      - 1337:80
+    restart: always
+    container_name: jumpstorm-client
+    hostname: client
+
+  server:
+    build:
+      dockerfile: Dockerfile.server
+    networks:
+      - webapp
+    restart: always
+    container_name: jumpstorm-server
+
+networks:
+  webapp:
+    driver: bridge
