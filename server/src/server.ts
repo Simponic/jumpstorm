@@ -42,7 +42,9 @@ export class GameServer {
         fetch: (req, srv) => this.fetchHandler(req, srv),
         websocket: {
           open: (ws) => this.openWebsocket(ws),
-          message: (ws, msg) => this.websocketMessage(ws, msg),
+          message: (ws, msg) => {
+            if (typeof msg === 'string') this.websocketMessage(ws, msg);
+          },
           close: (ws) => this.closeWebsocket(ws)
         }
       });
@@ -54,21 +56,19 @@ export class GameServer {
 
   private websocketMessage(
     websocket: ServerWebSocket<SessionData>,
-    message: string | Uint8Array
+    message: string
   ) {
-    if (typeof message == 'string') {
-      const receivedMessage = parse<ServerMessage>(message);
-      receivedMessage.sessionData = websocket.data;
+    const receivedMessage = parse<ServerMessage>(message);
+    receivedMessage.sessionData = websocket.data;
 
-      this.messageReceiver.addMessage(receivedMessage);
-    }
+    this.messageReceiver.addMessage(receivedMessage);
   }
 
   private closeWebsocket(websocket: ServerWebSocket<SessionData>) {
     const { sessionId } = websocket.data;
 
     const sessionEntities =
-      this.sessionManager.getSession(sessionId)!.controllableEntities;
+      this.sessionManager.getSession(sessionId)?.controllableEntities;
     this.sessionManager.removeSession(sessionId);
 
     if (!sessionEntities) return;

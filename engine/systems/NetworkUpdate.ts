@@ -1,6 +1,6 @@
 import { System, SystemNames } from '.';
 import { Game } from '../Game';
-import { ComponentNames } from '../components';
+import { ComponentNames, NetworkUpdateable } from '../components';
 import {
   type MessageQueueProvider,
   type MessagePublisher,
@@ -55,15 +55,20 @@ export class NetworkUpdate extends System {
     // 2. send entity updates
     const updateMessages: EntityUpdateBody[] = [];
 
-    // todo: figure out if we can use the controllable component to determine if we should publish an update
     game.forEachEntityWithComponent(
       ComponentNames.NetworkUpdateable,
       (entity) => {
+        const networkUpdateableComponent =
+          entity.getComponent<NetworkUpdateable>(
+            ComponentNames.NetworkUpdateable
+          );
+        const nextUpdateTime = networkUpdateableComponent.getNextUpdateTime();
+
         const newHash = stringify(entity.serialize());
         let updateInfo: EntityUpdateInfo = this.entityUpdateInfo.get(
           entity.id
         ) ?? {
-          timer: this.getNextUpdateTimeMs(),
+          timer: nextUpdateTime,
           hash: newHash
         };
 
@@ -71,13 +76,11 @@ export class NetworkUpdate extends System {
         updateInfo.timer -= dt;
         this.entityUpdateInfo.set(entity.id, updateInfo);
         if (updateInfo.timer > 0) return;
-        updateInfo.timer = entity.getNextUpdateInterval();
+        updateInfo.timer = nextUpdateTime;
         this.entityUpdateInfo.set(entity.id, updateInfo);
 
-        // maybe update if hash is not consitent
-        if (updateInfo.hash == newHash) {
-          return;
-        }
+        // maybe update, if hash is not consistent
+        if (updateInfo.hash == newHash) return;
         updateInfo.hash = newHash;
         this.entityUpdateInfo.set(entity.id, updateInfo);
 
@@ -102,7 +105,7 @@ export class NetworkUpdate extends System {
     }
   }
 
-  private getNextUpdateInterval(): number {
-    return Math.random() * 30;
+  private getNextUpdateInterval() {
+    return Math.random() * 30 + 20;
   }
 }

@@ -60,7 +60,7 @@ export class Player extends Entity {
     const [leftSprite, rightSprite] = [Direction.LEFT, Direction.RIGHT].map(
       (direction) =>
         new Sprite(
-          IMAGES.get(Player.spriteSpec.states?.get(direction)?.sheet as string),
+          IMAGES.get(Player.spriteSpec.states!.get(direction)!.sheet!)!,
           { x: 0, y: 0 },
           { width: Player.spriteSpec.width, height: Player.spriteSpec.height },
           Player.spriteSpec.msPerFrame,
@@ -101,9 +101,5 @@ export class Player extends Entity {
       new Forces(forces.forces),
       new BoundingBox(center, boundingBox.dimension, boundingBox.rotation)
     ].forEach((component) => this.addComponent(component));
-  }
-
-  public getNextUpdateInterval() {
-    return Math.random() * 30 + 50;
   }
 }

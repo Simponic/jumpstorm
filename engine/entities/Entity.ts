@@ -1,8 +1,7 @@
 import { EntityNames, Floor, Player } from '.';
 import { type Component } from '../components';
 
-const randomId = () =>
-  (performance.now() + Math.random() * 10_000_000).toString();
+const randomId = () => (Math.random() * 1_000_000_000).toString();
 
 export abstract class Entity {
   public id: string;
@@ -59,6 +58,4 @@ export abstract class Entity {
   public abstract setFrom(args: Record<string, any>): void;
 
   public abstract serialize(): Record<string, any>;
-
-  public abstract getNextUpdateInterval(): number;
 }

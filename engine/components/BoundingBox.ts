@@ -16,6 +16,7 @@ export class BoundingBox extends Component {
   }
 
   public isCollidingWith(box: BoundingBox): boolean {
+    // optimization; when neither rotates just check if they overlap
     if (this.rotation == 0 && box.rotation == 0) {
       const thisTopLeft = this.getTopLeft();
       const thisBottomRight = this.getBottomRight();

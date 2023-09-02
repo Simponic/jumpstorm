@@ -17,7 +17,7 @@ export class Floor extends Entity {
 
     this.addComponent(
       new Sprite(
-        IMAGES.get((Floor.spriteSpec?.states?.get(width) as SpriteSpec).sheet),
+        IMAGES.get(Floor.spriteSpec!.states!.get(width)!.sheet!)!,
         { x: 0, y: 0 },
         { width, height: Floor.spriteSpec.height },
         Floor.spriteSpec.msPerFrame,
@@ -44,9 +44,5 @@ export class Floor extends Entity {
         boundingBox.rotation
       )
     );
-  }
-
-  public getNextUpdateInterval() {
-    return Math.random() * 500;
   }
 }
