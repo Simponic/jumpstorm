@@ -7,7 +7,7 @@ services:
     networks:
       - webapp
     ports:
-      - 1337:80
+      - 28303:80
     restart: always
     container_name: jumpstorm-client
     hostname: client

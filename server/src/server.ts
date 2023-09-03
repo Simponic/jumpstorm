@@ -38,6 +38,7 @@ export class GameServer {
   public serve() {
     if (!this.server)
       this.server = Bun.serve<SessionData>({
+        host: Constants.HOST,
         port: Constants.SERVER_PORT,
         fetch: (req, srv) => this.fetchHandler(req, srv),
         websocket: {
@@ -137,7 +138,7 @@ export class GameServer {
     const headers = new Headers();
     headers.set('Access-Control-Allow-Origin', '*');
 
-    if (url.pathname == '/assign') {
+    if (url.pathname === '/api/assign') {
       if (this.sessionManager.numSessions() > Constants.MAX_PLAYERS)
         return new Response('too many players', { headers, status: 400 });
 
@@ -154,7 +155,7 @@ export class GameServer {
 
     const sessionId = cookie.split(';').at(0)!.split('SessionId=').at(1);
 
-    if (url.pathname == '/game') {
+    if (url.pathname === '/api/game') {
       server.upgrade(req, {
         headers,
         data: {
@@ -165,7 +166,7 @@ export class GameServer {
       return new Response('upgraded to ws', { headers });
     }
 
-    if (url.pathname == '/me') {
+    if (url.pathname === '/api/me') {
       return new Response(sessionId, { headers });
     }
 
