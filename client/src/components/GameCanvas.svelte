@@ -19,8 +19,10 @@
     const game = new Game();
     const jumpStorm = new JumpStorm(game);
 
-    await jumpStorm.init(ctx, "http", "ws", document.location.host + "/api");
-    jumpStorm.play();
+    const { protocol, host } = document.location;
+    const isHttps = protocol.startsWith('https');
+    jumpStorm.init(ctx, isHttps ? 'https' : 'http', isHttps ? 'wss' : 'ws', `${host}/api`)
+        .then(() => jumpStorm.play());
   });
 </script>
 
