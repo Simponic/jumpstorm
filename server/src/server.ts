@@ -10,11 +10,10 @@ import {
   Session,
   SessionManager
 } from './network';
-import { parse } from '@engine/utils';
+import { parse, serialize } from '@engine/utils';
 import { Server, ServerWebSocket } from 'bun';
 import { Input } from '@engine/systems';
 import { Control, NetworkUpdateable } from '@engine/components';
-import { stringify } from '@engine/utils';
 
 export class GameServer {
   private server?: Server;
@@ -44,7 +43,8 @@ export class GameServer {
         websocket: {
           open: (ws) => this.openWebsocket(ws),
           message: (ws, msg) => {
-            if (typeof msg === 'string') this.websocketMessage(ws, msg);
+            if (typeof msg !== 'string')
+              this.websocketMessage(ws, new Uint8Array(msg));
           },
           close: (ws) => this.closeWebsocket(ws)
         }
@@ -57,7 +57,7 @@ export class GameServer {
 
   private websocketMessage(
     websocket: ServerWebSocket<SessionData>,
-    message: string
+    message: Uint8Array
   ) {
     const receivedMessage = parse<ServerMessage>(message);
     receivedMessage.sessionData = websocket.data;
@@ -117,7 +117,7 @@ export class GameServer {
           })
       }
     ];
-    websocket.sendText(stringify(addCurrentEntities));
+    websocket.sendBinary(serialize(addCurrentEntities));
 
     const addNewPlayer: Message = {
       type: MessageType.NEW_ENTITIES,

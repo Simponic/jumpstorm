@@ -10,8 +10,10 @@ export class ClientSocketMessageQueueProvider implements MessageQueueProvider {
     this.messages = [];
 
     this.socket.addEventListener('message', (e) => {
-      const messages = parse<Message[]>(e.data);
-      this.messages = this.messages.concat(messages);
+      e.data.arrayBuffer().then((buffer) => {
+        const messages = parse<Message[]>(new Uint8Array(buffer));
+        this.messages = this.messages.concat(messages);
+      });
     });
   }
 

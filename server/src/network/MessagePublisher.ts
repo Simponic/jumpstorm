@@ -1,7 +1,7 @@
 import { Message, MessagePublisher } from '@engine/network';
 import { Server } from 'bun';
 import { Constants } from '../constants';
-import { stringify } from '@engine/utils';
+import { serialize } from '@engine/utils';
 
 export class ServerSocketMessagePublisher implements MessagePublisher {
   private server?: Server;
@@ -23,7 +23,7 @@ export class ServerSocketMessagePublisher implements MessagePublisher {
 
   public publish() {
     if (this.messages.length) {
-      this.server?.publish(Constants.GAME_TOPIC, stringify(this.messages));
+      this.server?.publish(Constants.GAME_TOPIC, serialize(this.messages));
 
       this.messages = [];
     }

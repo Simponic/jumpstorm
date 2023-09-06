@@ -1,0 +1,3 @@
+[submodule "engine/utils/compatto"]
+	path = engine/utils/compatto
+	url = https://github.com/macarie/compatto

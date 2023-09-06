@@ -1,3 +1,8 @@
+import { compatto } from './compatto';
+import dictionary from './dictionary';
+
+const { compress, decompress } = compatto({ dictionary });
+
 const replacer = (_key: any, value: any) => {
   if (value instanceof Map) {
     return {
@@ -31,10 +36,17 @@ const reviver = (_key: any, value: any) => {
 };
 
 // "deterministic" stringify
-export const stringify = (obj: any) => {
+
+export const stringify = (obj: any): string => {
   return JSON.stringify(sortObj(obj), replacer);
 };
 
-export const parse = <T>(str: string) => {
-  return JSON.parse(str, reviver) as unknown as T;
+export const serialize = (obj: any): Uint8Array => {
+  //return new Uint8Array(new TextEncoder().encode(stringify(obj)));
+  return compress(stringify(obj));
+};
+
+export const parse = <T>(serialized: Uint8Array): T => {
+  //return JSON.parse(new TextDecoder().decode(serialized), reviver) as T;
+  return JSON.parse(decompress(serialized), reviver) as T;
 };

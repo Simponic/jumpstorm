@@ -1,5 +1,5 @@
 import type { Message, MessagePublisher } from '@engine/network';
-import { stringify } from '@engine/utils';
+import { serialize } from '@engine/utils';
 
 export class ClientSocketMessagePublisher implements MessagePublisher {
   private socket: WebSocket;
@@ -17,7 +17,7 @@ export class ClientSocketMessagePublisher implements MessagePublisher {
   public publish() {
     if (this.socket.readyState == WebSocket.OPEN) {
       this.messages.forEach((message: Message) =>
-        this.socket.send(stringify(message))
+        this.socket.send(serialize(message))
       );
       this.messages = [];
     }
