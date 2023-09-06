@@ -92,7 +92,7 @@ export class Player extends Entity {
     const distance = Math.sqrt(
       Math.pow(center.y - myCenter.y, 2) + Math.pow(center.x - myCenter.x, 2)
     );
-    const clientServerPredictionCenterThreshold = 20;
+    const clientServerPredictionCenterThreshold = 15;
     if (distance < clientServerPredictionCenterThreshold) center = myCenter;
 
     [

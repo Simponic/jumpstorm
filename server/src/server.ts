@@ -38,7 +38,7 @@ export class GameServer {
   public serve() {
     if (!this.server)
       this.server = Bun.serve<SessionData>({
-        host: Constants.HOST,
+        hostname: Constants.HOST,
         port: Constants.SERVER_PORT,
         fetch: (req, srv) => this.fetchHandler(req, srv),
         websocket: {
